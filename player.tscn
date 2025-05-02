@@ -1,0 +1,188 @@
+[gd_scene load_steps=10 format=3 uid="uid://6t0kob2r68og"]
+
+[ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/1.png" id="1_4flbx"]
+
+[sub_resource type="GDScript" id="GDScript_4flbx"]
+resource_name = "player"
+script/source = "extends CharacterBody2D
+
+# 📌 Constantes et variables
+const SPEED = 100.0
+@onready var anim = $AnimationPlayer  # Assurez-vous qu'il correspond à votre noeud
+@onready var sprite = $sprite  # Ajout pour manipuler le sprite correctement
+@onready var last_direction = \"walk_down\"  # Mémorise la dernière direction
+
+# 📌 Gestion des armes
+@export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
+var current_weapon: Weapon = null  # Référence à l'arme actuelle
+
+func _ready():
+	if weapon:
+		current_weapon = get_node(weapon)
+
+func _physics_process(delta):
+	get_input()
+	move_and_slide()
+	
+	if current_weapon:
+		handle_weapon()
+
+# 📌 Gère le déplacement et les animations
+func get_input():
+	var input_direction = Input.get_vector(\"left\", \"right\", \"up\", \"down\")
+	velocity = input_direction * SPEED
+
+	if anim:
+		if input_direction == Vector2.ZERO:
+			anim.stop()  # Arrête l'animation si le joueur ne bouge pas
+		else:
+			# Change l'animation en fonction de la direction
+			if input_direction.x > 0:
+				last_direction = \"walk-right\"
+			elif input_direction.x < 0:
+				last_direction = \"walk-left\"
+			elif input_direction.y > 0:
+				last_direction = \"walk-down\"
+			elif input_direction.y < 0:
+				last_direction = \"walk-up\"
+
+			if anim.current_animation != last_direction:
+				anim.play(last_direction)
+
+# 📌 Gère l'utilisation de l'arme
+func handle_weapon():
+	var shoot_direction = (get_global_mouse_position() - global_position).normalized()
+
+	if Input.is_action_pressed(\"shoot\") and current_weapon:
+		current_weapon.shoot(shoot_direction)
+
+	if Input.is_action_just_pressed(\"reload\") and current_weapon:
+		current_weapon.reload()
+
+# 📌 Fonction pour changer d'arme
+func equip_weapon(new_weapon_scene: PackedScene):
+	if current_weapon:
+		current_weapon.queue_free()  # Supprime l'ancienne arme
+
+	current_weapon = new_weapon_scene.instantiate()
+	add_child(current_weapon)  # Ajoute l'arme au joueur
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
+
+[sub_resource type="Animation" id="Animation_onrkg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
+}
+
+[sub_resource type="Animation" id="Animation_i3pqv"]
+resource_name = "walk-down"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [1, 5, 9, 13, 17]
+}
+
+[sub_resource type="Animation" id="Animation_sweqy"]
+resource_name = "walk-left"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 4, 8, 12, 16]
+}
+
+[sub_resource type="Animation" id="Animation_hqtel"]
+resource_name = "walk-right"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [2, 6, 10, 14, 18]
+}
+
+[sub_resource type="Animation" id="Animation_4flbx"]
+resource_name = "walk-up"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [3, 7, 11, 15, 19]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1jxqw"]
+_data = {
+&"RESET": SubResource("Animation_onrkg"),
+&"walk-down": SubResource("Animation_i3pqv"),
+&"walk-left": SubResource("Animation_sweqy"),
+&"walk-right": SubResource("Animation_hqtel"),
+&"walk-up": SubResource("Animation_4flbx")
+}
+
+[node name="main" type="Node2D"]
+
+[node name="player" type="CharacterBody2D" parent="."]
+script = SubResource("GDScript_4flbx")
+
+[node name="Camera2D" type="Camera2D" parent="player"]
+zoom = Vector2(5, 5)
+position_smoothing_enabled = true
+position_smoothing_speed = 1.0
+
+[node name="sprite" type="Sprite2D" parent="player"]
+texture = ExtResource("1_4flbx")
+hframes = 4
+vframes = 5
+frame = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="player"]
+shape = SubResource("RectangleShape2D_i3pqv")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="player"]
+root_node = NodePath("../sprite")
+libraries = {
+&"": SubResource("AnimationLibrary_1jxqw")
+}
