@@ -10,6 +10,7 @@ projectile_scene = ExtResource("3_4yj5k")
 shoot_offset = Vector2(15, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_dxc1y")
 
 [node name="ShootDelay" type="Timer" parent="."]

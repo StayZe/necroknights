@@ -19,6 +19,9 @@ const SPEED = 100.0
 var current_weapon: Weapon = null  # Référence à l'arme actuelle
 @export var weapon_pickup_scene: PackedScene  # La scène de pickup d'arme à utiliser
 
+# Pour stocker le chemin de la scène de l'arme originale
+var current_weapon_scene_path: String = \"\"
+
 func _ready():
 	# Ajouter le joueur au groupe pour la détection
 	add_to_group(\"player\")
@@ -74,6 +77,10 @@ func equip_weapon(new_weapon_scene: PackedScene):
 	if current_weapon:
 		current_weapon.queue_free()  # Supprime l'ancienne arme
 
+	# Sauvegarder le chemin de la scène de l'arme
+	current_weapon_scene_path = new_weapon_scene.resource_path
+	
+	# Instancier la nouvelle arme
 	current_weapon = new_weapon_scene.instantiate()
 	add_child(current_weapon)  # Ajoute l'arme au joueur
 	
@@ -82,7 +89,13 @@ func drop_weapon():
 	if current_weapon and weapon_pickup_scene:
 		# Créer un pickup d'arme
 		var pickup = weapon_pickup_scene.instantiate()
-		pickup.weapon_scene = load(current_weapon.get_path())
+		
+		# Utiliser le chemin de scène sauvegardé lors de l'équipement
+		if current_weapon_scene_path != \"\":
+			pickup.weapon_scene = load(current_weapon_scene_path)
+		else:
+			# Fallback sur le pistolet par défaut en cas d'erreur
+			pickup.weapon_scene = preload(\"res://weapons/Pistol.tscn\") 
 		
 		# Positionner le pickup à côté du joueur (décalage léger pour éviter collision)
 		var offset = Vector2(20, 0)
@@ -101,6 +114,7 @@ func drop_weapon():
 		# Supprimer l'arme actuelle
 		current_weapon.queue_free()
 		current_weapon = null
+		current_weapon_scene_path = \"\"
 "
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]

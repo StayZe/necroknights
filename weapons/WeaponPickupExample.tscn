@@ -17,6 +17,7 @@ func _ready():
 		$Sprite2D.texture = preload(\"res://sprites/pistol1.png\")
 		$Sprite2D.position = Vector2(6, 0)
 		$Sprite2D.rotation = -0.0165482
+		$Sprite2D.scale = Vector2(0.5, 0.5)
 	
 	# Appel du _ready() parent
 	super._ready()
@@ -29,4 +30,5 @@ weapon_scene = ExtResource("2_qhre3")
 [node name="Sprite2D" parent="." index="0"]
 position = Vector2(6, 0)
 rotation = -0.0165482
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("3_xvd8q")

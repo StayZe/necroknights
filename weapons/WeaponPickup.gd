@@ -26,6 +26,9 @@ func _ready():
 			
 			# Pistol1 n'a pas de hframes, c'est une image unique
 			$Sprite2D.hframes = 1
+			
+			# Réduire la taille de l'arme
+			$Sprite2D.scale = Vector2(0.5, 0.5)
 
 var player_in_range = false
 var current_player = null

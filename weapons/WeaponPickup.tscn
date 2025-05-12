@@ -24,10 +24,11 @@ shape = SubResource("CircleShape2D_l4p6q")
 
 [node name="PickupPrompt" type="Label" parent="."]
 visible = false
-offset_left = -64.0
-offset_top = -40.0
-offset_right = 64.0
+offset_left = -40.0
+offset_top = -30.0
+offset_right = 40.0
 offset_bottom = -16.0
+theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_qmcp7")
 text = "Appuyez sur E"
 horizontal_alignment = 1
