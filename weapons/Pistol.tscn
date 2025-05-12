@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://dxhk1lsw212xd"]
+
+[ext_resource type="Script" uid="uid://rfxiuqrtc52u" path="res://weapons/Pistol.gd" id="1_oidtw"]
+[ext_resource type="Texture2D" path="res://sprites/pistol1.png" id="2_dxc1y"]
+[ext_resource type="PackedScene" path="res://weapons/Projectile.tscn" id="3_4yj5k"]
+
+[node name="Pistol" type="Node2D"]
+script = ExtResource("1_oidtw")
+projectile_scene = ExtResource("3_4yj5k")
+shoot_offset = Vector2(15, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_dxc1y")
+
+[node name="ShootDelay" type="Timer" parent="."]
+wait_time = 0.4
+one_shot = true
+
+[node name="ReloadTimer" type="Timer" parent="."]
+wait_time = 1.2
+one_shot = true

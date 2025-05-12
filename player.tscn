@@ -1,6 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://6t0kob2r68og"]
+[gd_scene load_steps=12 format=3 uid="uid://6t0kob2r68og"]
 
 [ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/1.png" id="1_4flbx"]
+[ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="2_ysajf"]
+[ext_resource type="PackedScene" uid="uid://cr5bok1l3ascq" path="res://weapons/WeaponPickupExample.tscn" id="3_ksl3e"]
 
 [sub_resource type="GDScript" id="GDScript_4flbx"]
 resource_name = "player"
@@ -15,8 +17,12 @@ const SPEED = 100.0
 # 📌 Gestion des armes
 @export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
 var current_weapon: Weapon = null  # Référence à l'arme actuelle
+@export var weapon_pickup_scene: PackedScene  # La scène de pickup d'arme à utiliser
 
 func _ready():
+	# Ajouter le joueur au groupe pour la détection
+	add_to_group(\"player\")
+	
 	if weapon:
 		current_weapon = get_node(weapon)
 
@@ -26,6 +32,10 @@ func _physics_process(delta):
 	
 	if current_weapon:
 		handle_weapon()
+		
+	# Gérer la dépose d'arme avec la touche F
+	if Input.is_action_just_pressed(\"drop\") and current_weapon:
+		drop_weapon()
 
 # 📌 Gère le déplacement et les animations
 func get_input():
@@ -66,6 +76,31 @@ func equip_weapon(new_weapon_scene: PackedScene):
 
 	current_weapon = new_weapon_scene.instantiate()
 	add_child(current_weapon)  # Ajoute l'arme au joueur
+	
+# 📌 Fonction pour déposer l'arme au sol
+func drop_weapon():
+	if current_weapon and weapon_pickup_scene:
+		# Créer un pickup d'arme
+		var pickup = weapon_pickup_scene.instantiate()
+		pickup.weapon_scene = load(current_weapon.get_path())
+		
+		# Positionner le pickup à côté du joueur (décalage léger pour éviter collision)
+		var offset = Vector2(20, 0)
+		if last_direction == \"walk-left\":
+			offset.x = -20
+		elif last_direction == \"walk-up\":
+			offset = Vector2(0, -20)
+		elif last_direction == \"walk-down\":
+			offset = Vector2(0, 20)
+			
+		pickup.position = global_position + offset
+		
+		# Ajouter le pickup à la scène
+		get_parent().add_child(pickup)
+		
+		# Supprimer l'arme actuelle
+		current_weapon.queue_free()
+		current_weapon = null
 "
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
@@ -164,8 +199,9 @@ _data = {
 
 [node name="main" type="Node2D"]
 
-[node name="player" type="CharacterBody2D" parent="."]
+[node name="player" type="CharacterBody2D" parent="." groups=["player"]]
 script = SubResource("GDScript_4flbx")
+weapon_pickup_scene = ExtResource("2_ysajf")
 
 [node name="Camera2D" type="Camera2D" parent="player"]
 zoom = Vector2(5, 5)
@@ -186,3 +222,6 @@ root_node = NodePath("../sprite")
 libraries = {
 &"": SubResource("AnimationLibrary_1jxqw")
 }
+
+[node name="PistolPickup" parent="." instance=ExtResource("3_ksl3e")]
+position = Vector2(30, 0)
