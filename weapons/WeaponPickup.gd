@@ -18,14 +18,37 @@ func _ready():
 	
 	# Ajouter le sprite de l'arme si nécessaire
 	if $Sprite2D and weapon_scene:
-		# Vérifier si c'est un pistolet (exemple spécifique)
+		# Vérifier le type d'arme
 		var weapon_path = weapon_scene.resource_path
+		
 		if "Pistol" in weapon_path:
 			# S'assurer que la texture est correctement configurée
 			$Sprite2D.texture = preload("res://sprites/weapons/Pistol_Flicker.png")
 			
 			# Configurer le spritesheet
 			$Sprite2D.hframes = 7  # 7 frames horizontales comme vu dans l'image
+			$Sprite2D.frame = 0    # Première frame par défaut
+			
+			# Taille originale de l'arme
+			$Sprite2D.scale = Vector2(1.0, 1.0)
+		
+		elif "Rifle" in weapon_path:
+			# S'assurer que la texture est correctement configurée
+			$Sprite2D.texture = preload("res://sprites/weapons/Rifle_Flicker.png")
+			
+			# Configurer le spritesheet
+			$Sprite2D.hframes = 7  # 7 frames horizontales
+			$Sprite2D.frame = 0    # Première frame par défaut
+			
+			# Taille originale de l'arme
+			$Sprite2D.scale = Vector2(1.0, 1.0)
+		
+		elif "Sniper" in weapon_path:
+			# S'assurer que la texture est correctement configurée
+			$Sprite2D.texture = preload("res://sprites/weapons/Sniper_Flicker.png")
+			
+			# Configurer le spritesheet
+			$Sprite2D.hframes = 7  # 7 frames horizontales
 			$Sprite2D.frame = 0    # Première frame par défaut
 			
 			# Taille originale de l'arme
