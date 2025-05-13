@@ -1,17 +1,120 @@
-[gd_scene load_steps=4 format=3 uid="uid://dxhk1lsw212xd"]
+[gd_scene load_steps=9 format=3 uid="uid://dxhk1lsw212xd"]
 
 [ext_resource type="Script" uid="uid://rfxiuqrtc52u" path="res://weapons/Pistol.gd" id="1_oidtw"]
-[ext_resource type="Texture2D" path="res://sprites/pistol1.png" id="2_dxc1y"]
-[ext_resource type="PackedScene" path="res://weapons/Projectile.tscn" id="3_4yj5k"]
+[ext_resource type="Texture2D" uid="uid://bx3wrvjjqy4dl" path="res://sprites/weapons/Pistol_Flicker.png" id="2_dxc1y"]
+[ext_resource type="PackedScene" uid="uid://byexhcn7esfm1" path="res://weapons/Projectile.tscn" id="3_4yj5k"]
+[ext_resource type="Texture2D" uid="uid://wgyoa5ds0x4d" path="res://sprites/weapons/Pistol_Shoot.png" id="4_ub27n"]
+
+[sub_resource type="Animation" id="Animation_qnp9y"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("2_dxc1y")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_vjk8s"]
+resource_name = "flicker"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("2_dxc1y")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+
+[sub_resource type="Animation" id="Animation_yw22a"]
+resource_name = "shoot"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [ExtResource("4_ub27n"), ExtResource("2_dxc1y")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.08, 0.16, 0.24, 0.32, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2b4wy"]
+_data = {
+&"RESET": SubResource("Animation_qnp9y"),
+&"flicker": SubResource("Animation_vjk8s"),
+&"shoot": SubResource("Animation_yw22a")
+}
 
 [node name="Pistol" type="Node2D"]
 script = ExtResource("1_oidtw")
 projectile_scene = ExtResource("3_4yj5k")
-shoot_offset = Vector2(15, 0)
+shoot_offset = Vector2(25, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_dxc1y")
+hframes = 7
 
 [node name="ShootDelay" type="Timer" parent="."]
 wait_time = 0.4
@@ -20,3 +123,14 @@ one_shot = true
 [node name="ReloadTimer" type="Timer" parent="."]
 wait_time = 1.2
 one_shot = true
+
+[node name="FlickerTimer" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_2b4wy")
+}
+
+[connection signal="timeout" from="FlickerTimer" to="." method="_on_flicker_timer_timeout"]

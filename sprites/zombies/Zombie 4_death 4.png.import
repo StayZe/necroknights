@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ypv84moo077k"
-path="res://.godot/imported/pistolGandD.png-228f3eeba0b661ff917ae09ca71c8e38.ctex"
+uid="uid://b2mc144qe8xeg"
+path="res://.godot/imported/Zombie 4_death 4.png-90f1814a311c717b2608d59d7d2c7adb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://sprites/pistolGandD.png"
-dest_files=["res://.godot/imported/pistolGandD.png-228f3eeba0b661ff917ae09ca71c8e38.ctex"]
+source_file="res://sprites/zombies/Zombie 4_death 4.png"
+dest_files=["res://.godot/imported/Zombie 4_death 4.png-90f1814a311c717b2608d59d7d2c7adb.ctex"]
 
 [params]
 

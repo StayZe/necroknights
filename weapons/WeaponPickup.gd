@@ -22,16 +22,18 @@ func _ready():
 		var weapon_path = weapon_scene.resource_path
 		if "Pistol" in weapon_path:
 			# S'assurer que la texture est correctement configurée
-			$Sprite2D.texture = preload("res://sprites/pistol1.png")
+			$Sprite2D.texture = preload("res://sprites/weapons/Pistol_Flicker.png")
 			
-			# Pistol1 n'a pas de hframes, c'est une image unique
-			$Sprite2D.hframes = 1
+			# Configurer le spritesheet
+			$Sprite2D.hframes = 7  # 7 frames horizontales comme vu dans l'image
+			$Sprite2D.frame = 0    # Première frame par défaut
 			
-			# Réduire la taille de l'arme
-			$Sprite2D.scale = Vector2(0.5, 0.5)
+			# Taille originale de l'arme
+			$Sprite2D.scale = Vector2(1.0, 1.0)
 
 var player_in_range = false
 var current_player = null
+var anim_timer = 0.0  # Pour l'animation de frame au sol
 
 func _process(delta):
 	# Animation de flottaison
@@ -41,6 +43,13 @@ func _process(delta):
 	# Animation de rotation légère - vérifier que le sprite existe avant de modifier sa rotation
 	if has_node("Sprite2D") and $Sprite2D:
 		$Sprite2D.rotation_degrees = sin(time * 1.5) * 5  # Rotation de +/- 5 degrés
+		
+		# Animation simple du spritesheet pour l'arme au sol
+		if $Sprite2D.hframes > 1:
+			anim_timer += delta
+			if anim_timer >= 0.3:  # Changer de frame toutes les 0.3 secondes
+				anim_timer = 0.0
+				$Sprite2D.frame = ($Sprite2D.frame + 1) % $Sprite2D.hframes
 	
 	# Vérifier si le joueur peut ramasser l'arme
 	if player_in_range and Input.is_action_just_pressed("pickup"):
