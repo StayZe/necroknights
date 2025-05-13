@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://ndosd2imol5m"]
+
+[ext_resource type="VideoStream" uid="uid://cedjd6kqkldi8" path="res://video/pixelShader_14_05_2025_00_52_53.ogv" id="1_06t4h"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("1_06t4h")
+autoplay = true
+expand = true
+loop = true
+buffering_msec = 10
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -143.0
+offset_top = -239.0
+offset_right = 70.0
+offset_bottom = -187.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.36, 1)
+theme_override_font_sizes/font_size = 18
+text = "Start Game"
