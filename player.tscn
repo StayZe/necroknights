@@ -11,12 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://13bn2c3xstdj" path="res://weapons/WeaponPickupsTest.tscn" id="6_2hs0m"]
 [ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="7_1jxqw"]
 [ext_resource type="Texture2D" uid="uid://d34m5lb7wjbhy" path="res://sprites/map/16x16/buildings_roofs.png" id="8_dw050"]
-
-[ext_resource type="PackedScene" uid="uid://d3qpdawl3rg22" path="res://scenes/PlayerWithScript.tscn" id="2_dw050"]
-[ext_resource type="PackedScene" path="res://weapons/WeaponPickup.tscn" id="2_ysajf"]
-[ext_resource type="PackedScene" path="res://weapons/WeaponPickupExample.tscn" id="3_ksl3e"]
-[ext_resource type="PackedScene" path="res://weapons/WeaponPickupsTest.tscn" id="6_2hs0m"]
-[ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="7_1jxqw"]
+[ext_resource type="Texture2D" uid="uid://bmrgeah4iq3e4" path="res://sprites/map/16x16/buildings.png" id="8_ivps1"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sweqy"]
 texture = ExtResource("1_i3pqv")
@@ -5785,196 +5780,6 @@ texture = ExtResource("3_i3pqv")
 11:49/0 = 0
 12:49/0 = 0
 13:49/0 = 0
-
-[sub_resource type="GDScript" id="GDScript_4flbx"]
-resource_name = "player"
-script/source = "extends CharacterBody2D
-
-# 📌 Constantes et variables
-const SPEED = 100.0
-@onready var anim = $AnimationPlayer  # Assurez-vous qu'il correspond à votre noeud
-@onready var sprite = $sprite  # Ajout pour manipuler le sprite correctement
-@onready var last_direction = \"walk_down\"  # Mémorise la dernière direction
-var player_facing_right = true  # Indique si le joueur regarde à droite ou à gauche
-
-# 📌 Gestion des armes
-@export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
-var current_weapon: Weapon = null  # Référence à l'arme actuelle
-@export var weapon_pickup_scene: PackedScene  # La scène de pickup d'arme à utiliser
-
-# Pour stocker le chemin de la scène de l'arme originale
-var current_weapon_scene_path: String = \"\"
-
-func _ready():
-	# Ajouter le joueur au groupe pour la détection
-	add_to_group(\"player\")
-	
-	if weapon:
-		current_weapon = get_node(weapon)
-
-func _physics_process(delta):
-	get_input()
-	update_facing_direction()
-	move_and_slide()
-	
-	if current_weapon:
-		handle_weapon()
-		
-	# Gérer la dépose d'arme avec la touche F
-	if Input.is_action_just_pressed(\"drop\") and current_weapon:
-		drop_weapon()
-
-# 📌 Gère le déplacement et les animations
-func get_input():
-	var input_direction = Input.get_vector(\"left\", \"right\", \"up\", \"down\")
-	velocity = input_direction * SPEED
-
-	# Les animations sont maintenant principalement gérées par la fonction update_facing_direction
-	if anim and input_direction == Vector2.ZERO:
-		anim.stop()  # Arrête l'animation si le joueur ne bouge pas
-
-# 📌 Renvoie la direction actuelle du joueur
-func get_last_direction() -> String:
-	return last_direction
-
-# 📌 Met à jour la direction dans laquelle le joueur regarde en fonction de la souris
-func update_facing_direction():
-	# Déterminer si le joueur regarde à droite ou à gauche en fonction de la souris
-	var mouse_pos = get_global_mouse_position()
-	var previous_facing = player_facing_right
-	player_facing_right = mouse_pos.x > global_position.x
-	
-	# Mettre à jour l'animation si la direction a changé
-	if anim and previous_facing != player_facing_right:
-		if player_facing_right:
-			last_direction = \"walk-right\"
-			anim.play(\"walk-right\")
-		else:
-			last_direction = \"walk-left\"
-			anim.play(\"walk-left\")
-	
-	# Si le joueur se déplace (mais pas simplement en regardant), on priorise la direction haut/bas
-	if velocity.length() > 0 and anim:
-		if abs(velocity.y) > abs(velocity.x):
-			if velocity.y > 0:
-				last_direction = \"walk-down\"
-				anim.play(\"walk-down\")
-			else:
-				last_direction = \"walk-up\"
-				anim.play(\"walk-up\")
-		else:
-			if player_facing_right:
-				last_direction = \"walk-right\"
-				anim.play(\"walk-right\")
-			else:
-				last_direction = \"walk-left\"
-				anim.play(\"walk-left\")
-
-# 📌 Gère l'utilisation de l'arme
-func handle_weapon():
-	var shoot_direction = (get_global_mouse_position() - global_position).normalized()
-
-	if Input.is_action_pressed(\"shoot\") and current_weapon:
-		current_weapon.shoot(shoot_direction)
-
-	if Input.is_action_just_pressed(\"reload\") and current_weapon:
-		current_weapon.reload()
-
-# 📌 Fonction pour changer d'arme
-func equip_weapon(new_weapon_scene: PackedScene):
-	if current_weapon:
-		current_weapon.queue_free()  # Supprime l'ancienne arme
-
-	# Sauvegarder le chemin de la scène de l'arme
-	current_weapon_scene_path = new_weapon_scene.resource_path
-	
-	# Instancier la nouvelle arme
-	current_weapon = new_weapon_scene.instantiate()
-	add_child(current_weapon)  # Ajoute l'arme au joueur
-	
-# 📌 Fonction pour déposer l'arme au sol
-func drop_weapon():
-	if current_weapon and weapon_pickup_scene:
-		# Créer un pickup d'arme
-		var pickup = weapon_pickup_scene.instantiate()
-		
-		# Utiliser le chemin de scène sauvegardé lors de l'équipement
-		if current_weapon_scene_path != \"\":
-			pickup.weapon_scene = load(current_weapon_scene_path)
-		else:
-			# Fallback sur le pistolet par défaut en cas d'erreur
-			pickup.weapon_scene = preload(\"res://weapons/Pistol.tscn\") 
-		
-		# Positionner le pickup à côté du joueur (décalage léger pour éviter collision)
-		var offset = Vector2(20, 0)
-		if last_direction == \"walk-left\":
-			offset.x = -20
-		elif last_direction == \"walk-up\":
-			offset = Vector2(0, -20)
-		elif last_direction == \"walk-down\":
-			offset = Vector2(0, 20)
-			
-		pickup.position = global_position + offset
-		
-		# Ajouter le pickup à la scène
-		get_parent().add_child(pickup)
-		
-		# Supprimer l'arme actuelle
-		current_weapon.queue_free()
-		current_weapon = null
-		current_weapon_scene_path = \"\"
-"
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
-
-[sub_resource type="Animation" id="Animation_onrkg"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [3]
-}
-
-[sub_resource type="Animation" id="Animation_i3pqv"]
-resource_name = "walk-down"
-length = 0.5
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
-"update": 1,
-"values": [1, 5, 9, 13, 17]
-}
-
-[sub_resource type="Animation" id="Animation_sweqy"]
-resource_name = "walk-left"
-length = 0.5
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
-"update": 1,
-"values": [0, 4, 8, 12, 16]
-}
 
 [sub_resource type="TileSet" id="TileSet_dw050"]
 sources/0 = SubResource("TileSetAtlasSource_1jxqw")
@@ -12579,7 +12384,7 @@ physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_urp6f")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_n7ghd"]
-;texture = ExtResource("8_urp6f")
+texture = ExtResource("8_ivps1")
 1:0/0 = 0
 2:0/0 = 0
 3:0/0 = 0
@@ -14445,7 +14250,7 @@ physics_layer_0/collision_layer = 1
 sources/1 = SubResource("TileSetAtlasSource_n7ghd")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nvl01"]
-;texture = ExtResource("8_urp6f")
+texture = ExtResource("8_ivps1")
 1:0/0 = 0
 2:0/0 = 0
 3:0/0 = 0
