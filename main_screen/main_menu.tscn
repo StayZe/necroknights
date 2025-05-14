@@ -1,0 +1,107 @@
+[gd_scene load_steps=9 format=3 uid="uid://ndosd2imol5m"]
+
+[ext_resource type="VideoStream" path="res://video/zombie_bg.ogv" id="1_8pjg2"]
+[ext_resource type="FontFile" uid="uid://dll06tmq2mx0h" path="res://main_screen/font/retro.ttf" id="2_330t7"]
+[ext_resource type="Script" uid="uid://dk1oooqs7bnoo" path="res://main_screen/button/start_game_button.gd" id="2_6553m"]
+[ext_resource type="AudioStream" uid="uid://cqlalskdcbqth" path="res://main_screen/sfx/hover_button_tick.wav" id="4_nvyca"]
+[ext_resource type="AudioStream" uid="uid://blp7f6ubv7gbl" path="res://main_screen/music/theme.ogg" id="4_ra6j4"]
+[ext_resource type="AudioStream" uid="uid://dxohakmg6n60o" path="res://main_screen/sfx/zombie_loop.mp3" id="6_63kl3"]
+[ext_resource type="Script" uid="uid://b3jq4dmghvjcp" path="res://main_screen/sfx/zombie.gd" id="7_0kqi6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7vrkn"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+audio_track = 128
+stream = ExtResource("1_8pjg2")
+volume_db = 24.0
+autoplay = true
+expand = true
+loop = true
+buffering_msec = 10
+
+[node name="start" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 72.0
+offset_top = -156.0
+offset_right = -1548.0
+offset_bottom = -115.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_7vrkn")
+text = "Start Game"
+flat = true
+alignment = 0
+script = ExtResource("2_6553m")
+action_type = "start"
+
+[node name="help" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 72.0
+offset_top = -108.0
+offset_right = -1548.0
+offset_bottom = -67.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_7vrkn")
+text = "How to play"
+flat = true
+alignment = 0
+script = ExtResource("2_6553m")
+action_type = "help"
+
+[node name="HoverSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_nvyca")
+volume_db = -20.0
+
+[node name="theme" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_ra6j4")
+autoplay = true
+
+[node name="zombie" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("6_63kl3")
+volume_db = -15.0
+script = ExtResource("7_0kqi6")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -73.0
+offset_top = 248.0
+offset_right = 74.0
+offset_bottom = 271.0
+grow_horizontal = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_outline_size = 10
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 52
+text = "NECROKNIGHTS"
