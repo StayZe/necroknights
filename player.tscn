@@ -12579,7 +12579,7 @@ physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_urp6f")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_n7ghd"]
-texture = ExtResource("8_urp6f")
+;texture = ExtResource("8_urp6f")
 1:0/0 = 0
 2:0/0 = 0
 3:0/0 = 0
@@ -14445,7 +14445,7 @@ physics_layer_0/collision_layer = 1
 sources/1 = SubResource("TileSetAtlasSource_n7ghd")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nvl01"]
-texture = ExtResource("8_urp6f")
+;texture = ExtResource("8_urp6f")
 1:0/0 = 0
 2:0/0 = 0
 3:0/0 = 0
