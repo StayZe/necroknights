@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://bnw43mkxqvk3o"]
+
+[ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="1_ik325"]
+[ext_resource type="PackedScene" uid="uid://c3qyh0u4pqvdb" path="res://weapons/Rifle.tscn" id="2_5jlcq"]
+[ext_resource type="Texture2D" uid="uid://bgnnlrdryxg8r" path="res://sprites/weapons/Rifle_Flicker.png" id="3_ixqbs"]
+
+[sub_resource type="GDScript" id="GDScript_v3g8m"]
+script/source = "extends WeaponPickup
+
+func _ready():
+	# Création d'une scène d'arme à la volée si aucune n'est spécifiée
+	if not weapon_scene:
+		weapon_scene = preload(\"res://weapons/Rifle.tscn\")
+	
+	# Configuration du sprite
+	if $Sprite2D:
+		$Sprite2D.texture = preload(\"res://sprites/weapons/Rifle_Flicker.png\")
+		$Sprite2D.position = Vector2(12, 0)
+		$Sprite2D.rotation = -0.0165482
+		$Sprite2D.scale = Vector2(1.0, 1.0)
+		
+		# Configurer le spritesheet
+		$Sprite2D.hframes = 7  # 7 frames horizontales comme vu dans l'image
+		$Sprite2D.frame = 0    # Première frame
+	
+	# Appel du _ready() parent
+	super._ready()
+"
+
+[node name="RiflePickup" instance=ExtResource("1_ik325")]
+script = SubResource("GDScript_v3g8m")
+weapon_scene = ExtResource("2_5jlcq")
+
+[node name="Sprite2D" parent="." index="0"]
+position = Vector2(12, 0)
+rotation = -0.0165482
+texture = ExtResource("3_ixqbs")
+hframes = 7 

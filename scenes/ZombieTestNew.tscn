@@ -1,0 +1,65 @@
+[gd_scene load_steps=6 format=3 uid="uid://df3tkyvhkjwq5"]
+
+[ext_resource type="PackedScene" path="res://SimplePlayer.tscn" id="1_5efn2"]
+[ext_resource type="PackedScene" uid="uid://dxhk1lsw212xd" path="res://weapons/Pistol.tscn" id="2_6kckc"]
+[ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="3_1q3yk"]
+[ext_resource type="PackedScene" uid="uid://dytjcokiwbrry" path="res://entities/Zombie.tscn" id="4_27e1y"]
+[ext_resource type="PackedScene" uid="uid://bx6s47mxr52xw" path="res://weapons/WeaponPickup.tscn" id="5_7wvvt"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_jn25a"]
+radius = 12.0
+
+[node name="ZombieTestNew" type="Node2D"]
+
+[node name="Player" parent="." instance=ExtResource("1_5efn2")]
+position = Vector2(485, 294)
+collision_layer = 1
+collision_mask = 2
+weapon_pickup_scene = ExtResource("5_7wvvt")
+
+[node name="CollisionShape2D" parent="Player"]
+shape = SubResource("CircleShape2D_jn25a")
+
+[node name="Pistol" parent="Player" instance=ExtResource("2_6kckc")]
+
+[node name="ZombieSpawner" parent="." instance=ExtResource("3_1q3yk")]
+position = Vector2(106, 115)
+spawn_distance = 300.0
+
+[node name="ZombieSpawner2" parent="." instance=ExtResource("3_1q3yk")]
+position = Vector2(848, 115)
+spawn_distance = 300.0
+
+[node name="ZombieSpawner3" parent="." instance=ExtResource("3_1q3yk")]
+position = Vector2(106, 450)
+spawn_distance = 300.0
+
+[node name="ZombieSpawner4" parent="." instance=ExtResource("3_1q3yk")]
+position = Vector2(848, 450)
+spawn_distance = 300.0
+
+[node name="Zombie" parent="." instance=ExtResource("4_27e1y")]
+position = Vector2(265, 236)
+
+[node name="IntroLabel" type="Label" parent="."]
+offset_left = 332.0
+offset_top = 20.0
+offset_right = 642.0
+offset_bottom = 72.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+text = "Système de Zombies
+Utilisez ZQSD pour vous déplacer, clic gauche pour tirer
+Les zombies ont 100 HP, le joueur a 100 HP"
+horizontal_alignment = 1
+
+[node name="Instructions" type="Label" parent="."]
+offset_left = 25.0
+offset_top = 510.0
+offset_right = 953.0
+offset_bottom = 562.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+text = "Les zombies font 25 dégâts par attaque
+Le pistolet fait 20 dégâts par tir, le fusil d'assaut 25 et le sniper 100"
+horizontal_alignment = 1 
