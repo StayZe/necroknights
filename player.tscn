@@ -1,6 +1,6 @@
 [gd_scene load_steps=38 format=4 uid="uid://6t0kob2r68og"]
 
-[ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/1.png" id="1_4flbx"]
+[ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/players/1.png" id="1_4flbx"]
 [ext_resource type="Texture2D" uid="uid://c4u103tv3c26s" path="res://sprites/map/16x16/main_lev.png" id="1_i3pqv"]
 [ext_resource type="Texture2D" uid="uid://bi4s0gcoih0pm" path="res://sprites/map/16x16/mainlev_hills.png" id="2_hqtel"]
 [ext_resource type="Texture2D" uid="uid://cuk6b0omib715" path="res://sprites/map/16x16/terrain_props_1.png" id="3_i3pqv"]
@@ -8,6 +8,12 @@
 [ext_resource type="Texture2D" uid="uid://djhuguyf0rhf2" path="res://sprites/map/16x16/dec_props.png" id="6_2hs0m"]
 [ext_resource type="Texture2D" uid="uid://bmrgeah4iq3e4" path="res://sprites/map/16x16/buildings.png" id="7_1jxqw"]
 [ext_resource type="Texture2D" uid="uid://d34m5lb7wjbhy" path="res://sprites/map/16x16/buildings_roofs.png" id="8_dw050"]
+
+[ext_resource type="PackedScene" uid="uid://d3qpdawl3rg22" path="res://scenes/PlayerWithScript.tscn" id="2_dw050"]
+[ext_resource type="PackedScene" path="res://weapons/WeaponPickup.tscn" id="2_ysajf"]
+[ext_resource type="PackedScene" path="res://weapons/WeaponPickupExample.tscn" id="3_ksl3e"]
+[ext_resource type="PackedScene" path="res://weapons/WeaponPickupsTest.tscn" id="6_2hs0m"]
+[ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="7_1jxqw"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sweqy"]
 texture = ExtResource("1_i3pqv")
@@ -5776,6 +5782,196 @@ texture = ExtResource("3_i3pqv")
 11:49/0 = 0
 12:49/0 = 0
 13:49/0 = 0
+
+[sub_resource type="GDScript" id="GDScript_4flbx"]
+resource_name = "player"
+script/source = "extends CharacterBody2D
+
+# 📌 Constantes et variables
+const SPEED = 100.0
+@onready var anim = $AnimationPlayer  # Assurez-vous qu'il correspond à votre noeud
+@onready var sprite = $sprite  # Ajout pour manipuler le sprite correctement
+@onready var last_direction = \"walk_down\"  # Mémorise la dernière direction
+var player_facing_right = true  # Indique si le joueur regarde à droite ou à gauche
+
+# 📌 Gestion des armes
+@export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
+var current_weapon: Weapon = null  # Référence à l'arme actuelle
+@export var weapon_pickup_scene: PackedScene  # La scène de pickup d'arme à utiliser
+
+# Pour stocker le chemin de la scène de l'arme originale
+var current_weapon_scene_path: String = \"\"
+
+func _ready():
+	# Ajouter le joueur au groupe pour la détection
+	add_to_group(\"player\")
+	
+	if weapon:
+		current_weapon = get_node(weapon)
+
+func _physics_process(delta):
+	get_input()
+	update_facing_direction()
+	move_and_slide()
+	
+	if current_weapon:
+		handle_weapon()
+		
+	# Gérer la dépose d'arme avec la touche F
+	if Input.is_action_just_pressed(\"drop\") and current_weapon:
+		drop_weapon()
+
+# 📌 Gère le déplacement et les animations
+func get_input():
+	var input_direction = Input.get_vector(\"left\", \"right\", \"up\", \"down\")
+	velocity = input_direction * SPEED
+
+	# Les animations sont maintenant principalement gérées par la fonction update_facing_direction
+	if anim and input_direction == Vector2.ZERO:
+		anim.stop()  # Arrête l'animation si le joueur ne bouge pas
+
+# 📌 Renvoie la direction actuelle du joueur
+func get_last_direction() -> String:
+	return last_direction
+
+# 📌 Met à jour la direction dans laquelle le joueur regarde en fonction de la souris
+func update_facing_direction():
+	# Déterminer si le joueur regarde à droite ou à gauche en fonction de la souris
+	var mouse_pos = get_global_mouse_position()
+	var previous_facing = player_facing_right
+	player_facing_right = mouse_pos.x > global_position.x
+	
+	# Mettre à jour l'animation si la direction a changé
+	if anim and previous_facing != player_facing_right:
+		if player_facing_right:
+			last_direction = \"walk-right\"
+			anim.play(\"walk-right\")
+		else:
+			last_direction = \"walk-left\"
+			anim.play(\"walk-left\")
+	
+	# Si le joueur se déplace (mais pas simplement en regardant), on priorise la direction haut/bas
+	if velocity.length() > 0 and anim:
+		if abs(velocity.y) > abs(velocity.x):
+			if velocity.y > 0:
+				last_direction = \"walk-down\"
+				anim.play(\"walk-down\")
+			else:
+				last_direction = \"walk-up\"
+				anim.play(\"walk-up\")
+		else:
+			if player_facing_right:
+				last_direction = \"walk-right\"
+				anim.play(\"walk-right\")
+			else:
+				last_direction = \"walk-left\"
+				anim.play(\"walk-left\")
+
+# 📌 Gère l'utilisation de l'arme
+func handle_weapon():
+	var shoot_direction = (get_global_mouse_position() - global_position).normalized()
+
+	if Input.is_action_pressed(\"shoot\") and current_weapon:
+		current_weapon.shoot(shoot_direction)
+
+	if Input.is_action_just_pressed(\"reload\") and current_weapon:
+		current_weapon.reload()
+
+# 📌 Fonction pour changer d'arme
+func equip_weapon(new_weapon_scene: PackedScene):
+	if current_weapon:
+		current_weapon.queue_free()  # Supprime l'ancienne arme
+
+	# Sauvegarder le chemin de la scène de l'arme
+	current_weapon_scene_path = new_weapon_scene.resource_path
+	
+	# Instancier la nouvelle arme
+	current_weapon = new_weapon_scene.instantiate()
+	add_child(current_weapon)  # Ajoute l'arme au joueur
+	
+# 📌 Fonction pour déposer l'arme au sol
+func drop_weapon():
+	if current_weapon and weapon_pickup_scene:
+		# Créer un pickup d'arme
+		var pickup = weapon_pickup_scene.instantiate()
+		
+		# Utiliser le chemin de scène sauvegardé lors de l'équipement
+		if current_weapon_scene_path != \"\":
+			pickup.weapon_scene = load(current_weapon_scene_path)
+		else:
+			# Fallback sur le pistolet par défaut en cas d'erreur
+			pickup.weapon_scene = preload(\"res://weapons/Pistol.tscn\") 
+		
+		# Positionner le pickup à côté du joueur (décalage léger pour éviter collision)
+		var offset = Vector2(20, 0)
+		if last_direction == \"walk-left\":
+			offset.x = -20
+		elif last_direction == \"walk-up\":
+			offset = Vector2(0, -20)
+		elif last_direction == \"walk-down\":
+			offset = Vector2(0, 20)
+			
+		pickup.position = global_position + offset
+		
+		# Ajouter le pickup à la scène
+		get_parent().add_child(pickup)
+		
+		# Supprimer l'arme actuelle
+		current_weapon.queue_free()
+		current_weapon = null
+		current_weapon_scene_path = \"\"
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
+
+[sub_resource type="Animation" id="Animation_onrkg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
+}
+
+[sub_resource type="Animation" id="Animation_i3pqv"]
+resource_name = "walk-down"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [1, 5, 9, 13, 17]
+}
+
+[sub_resource type="Animation" id="Animation_sweqy"]
+resource_name = "walk-left"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 4, 8, 12, 16]
+}
 
 [sub_resource type="TileSet" id="TileSet_dw050"]
 sources/0 = SubResource("TileSetAtlasSource_1jxqw")
@@ -17331,9 +17527,12 @@ tile_set = SubResource("TileSet_b26j0")
 tile_map_data = PackedByteArray("AAAZAAkAAAAAAAoAAAAZAAoAAAAAAAsAAAAaAAkAAAABAAoAAAAaAAoAAAABAAsAAABPABwAAAAAAAoAAABPAB0AAAAAAAsAAABQABwAAAABAAoAAABQAB0AAAABAAsAAABCABkAAAAVAAsAAABCABoAAAAVAAwAAABDABkAAAAWAAsAAABDABoAAAAWAAwAAABbACYAAAAVAA8AAABFACAAAAAVAA8AAAAvACMAAAAVAA8AAAAaABQAAAAVAA8AAAAFACMAAAAVAA8AAAD8/xIAAAAVAA8AAAAWAAsAAAAVAA8AAABNAC4AAAAUAA8AAAAyABwAAAAUAA8AAAAaACQAAAAUAA8AAAD+/yMAAAAUAA8AAAAKABEAAAAUAA8AAAAAAAUAAAAUAA8AAAAGAB8AAAAWAA4AAAAGACAAAAAWAA8AAAAHAB8AAAAXAA4AAAAHACAAAAAXAA8AAAD3/xcAAAAgAA4AAAD3/xgAAAAgAA8AAAD3/xkAAAAgABAAAAD2/xcAAAAfAA4AAAD2/xgAAAAfAA8AAAD2/xkAAAAfABAAAAD1/xcAAAAeAA4AAAD1/xgAAAAeAA8AAAD1/xkAAAAeABAAAAD0/xcAAAAdAA4AAAD0/xgAAAAdAA8AAAD0/xkAAAAdABAAAADz/xcAAAAcAA4AAADz/xgAAAAcAA8AAADz/xkAAAAcABAAAAAEAAEAAAAAAAwAAAAEAAIAAAAAAA0AAAAFAAEAAAABAAwAAAAFAAIAAAABAA0AAAAmABUAAAAcABEAAAAmABYAAAAcABIAAAAnABUAAAAdABEAAAAnABYAAAAdABIAAAAgACMAAAAeABEAAAAhACMAAAAfABEAAAABACYAAAAeABEAAAACACYAAAAfABEAAAAMABEAAAAeABEAAAANABEAAAAfABEAAAD0/wwAAAAeABEAAAD1/wwAAAAfABEAAAA4ACcAAAAeABEAAAA5ACcAAAAfABEAAAAsABgAAAAeABEAAAAtABgAAAAfABEAAABZACoAAAAeABEAAABaACoAAAAfABEAAAAxACYAAAAlABIAAAAxACcAAAAlABMAAAAyACYAAAAmABIAAAAyACcAAAAmABMAAAAzACYAAAAnABIAAAAzACcAAAAnABMAAAAGACoAAAAlABIAAAAGACsAAAAlABMAAAAHACoAAAAmABIAAAAHACsAAAAmABMAAAAIACoAAAAnABIAAAAIACsAAAAnABMAAAD3/yMAAAAbAA0AAAD4/yMAAAAcAA0AAAD5/yMAAAAdAA0AAAAoABUAAAAdAAwAAAApABUAAAAeAAwAAAA2ABgAAAAnABEAAAA3ABgAAAAoABEAAAAsACEAAAAnABEAAAAtACEAAAAoABEAAAA=")
 tile_set = SubResource("TileSet_606se")
 
-[node name="player" type="CharacterBody2D" parent="."]
+[node name="player" type="CharacterBody2D" parent="." groups=["player"]]
+visible = false
 position = Vector2(441, 448)
+
 script = SubResource("GDScript_4flbx")
+weapon_pickup_scene = ExtResource("2_ysajf")
 
 [node name="Camera2D" type="Camera2D" parent="player"]
 zoom = Vector2(4, 4)
@@ -17375,3 +17574,16 @@ tile_set = SubResource("TileSet_nvl01")
 [node name="toit et porte" type="TileMapLayer" parent="."]
 tile_map_data = PackedByteArray("AAAfABcAAQAYABgAAAAfABgAAQAYABkAAAAfABkAAQAYABoAAAAgABcAAQAZABgAAAAgABgAAQAZABkAAAAgABkAAQAZABoAAAAWABMAAgAMAAkAAAAWABQAAgAMAAoAAAAXABMAAgANAAkAAAAXABQAAgANAAoAAAAPABMAAgAMAAkAAAAPABQAAgAMAAoAAAAQABMAAgAMAAkAAAAQABQAAgAMAAoAAAARABMAAgANAAkAAAARABQAAgANAAoAAAASABMAAgAMAAkAAAASABQAAgAMAAoAAAATABMAAgANAAkAAAATABQAAgANAAoAAAAUABMAAgAMAAkAAAAUABQAAgAMAAoAAAAVABMAAgANAAkAAAAVABQAAgANAAoAAAAWABEAAgAMAAoAAAAWABIAAgAMAAoAAAAXABEAAgANAAoAAAAXABIAAgANAAoAAAAUABEAAgANAAoAAAAUABIAAgAMAAoAAAAVABEAAgAMAAoAAAAVABIAAgANAAoAAAASABEAAgANAAoAAAASABIAAgAMAAoAAAATABEAAgAMAAoAAAATABIAAgANAAoAAAAQABEAAgANAAoAAAAQABIAAgANAAoAAAARABEAAgAMAAoAAAARABIAAgANAAoAAAAPABEAAgAMAAoAAAAPABIAAgAMAAoAAAAPABAAAgAMAAkAAAAQABAAAgANAAkAAAARABAAAgAMAAkAAAASABAAAgANAAkAAAATABAAAgAMAAkAAAAUABAAAgANAAkAAAAVABAAAgAMAAkAAAAWABAAAgAMAAkAAAAXABAAAgANAAkAAAA8ABoAAQA0ABgAAAA8ABsAAQA0ABkAAAA8ABwAAQA0ABoAAAA9ABoAAQA1ABgAAAA9ABsAAQA1ABkAAAA9ABwAAQA1ABoAAABHABwAAQAYABgAAABHAB0AAQAYABkAAABHAB4AAQAYABoAAABIABwAAQAZABgAAABIAB0AAQAZABkAAABIAB4AAQAZABoAAABVAB8AAgAUAAMAAABVACAAAgAUAAQAAABWAB8AAgAVAAMAAABWACAAAgAVAAQAAABXAB8AAgAWAAMAAABXACAAAgAWAAQAAABYAB8AAgAXAAMAAABYACAAAgAXAAQAAABZAB8AAgAUAAMAAABZACAAAgAUAAQAAABaAB8AAgAVAAMAAABaACAAAgAVAAQAAABbAB8AAgAWAAMAAABbACAAAgAWAAQAAABcAB8AAgAUAAMAAABcACAAAgAUAAQAAABdAB8AAgAVAAMAAABdACAAAgAVAAQAAABeAB8AAgAWAAMAAABeACAAAgAWAAQAAABfAB8AAgAXAAMAAABfACAAAgAXAAQAAABVABgAAgAUAAAAAABVABkAAgAUAAEAAABWABgAAgAVAAAAAABWABkAAgAVAAEAAABXABgAAgAWAAAAAABXABkAAgAWAAEAAABYABgAAgAXAAAAAABYABkAAgAXAAEAAABZABgAAgAUAAAAAABZABkAAgAUAAEAAABaABgAAgAVAAAAAABaABkAAgAVAAEAAABbABgAAgAWAAAAAABbABkAAgAWAAEAAABcABgAAgAUAAAAAABcABkAAgAUAAEAAABdABgAAgAVAAAAAABdABkAAgAVAAEAAABeABgAAgAWAAAAAABeABkAAgAWAAEAAABfABgAAgAXAAAAAABfABkAAgAXAAEAAABVABoAAgAUAAIAAABWABoAAgAVAAIAAABXABoAAgAWAAIAAABYABoAAgAXAAIAAABZABoAAgAUAAIAAABaABoAAgAVAAIAAABbABoAAgAWAAIAAABcABoAAgAUAAIAAABdABoAAgAVAAIAAABeABoAAgAWAAIAAABfABoAAgAXAAIAAABcABsAAgAUAAIAAABdABsAAgAVAAIAAABeABsAAgAWAAIAAABfABsAAgAXAAIAAABcABwAAgAUAAIAAABdABwAAgAVAAIAAABeABwAAgAWAAIAAABfABwAAgAXAAIAAABcAB0AAgAUAAIAAABdAB0AAgAVAAIAAABeAB0AAgAWAAIAAABfAB0AAgAXAAIAAABcAB4AAgAVAAIAAABdAB4AAgAWAAIAAABeAB4AAgAXAAIAAABfAB4AAgAXAAIAAABbAB4AAgAUAAIAAABXAB4AAgAWAAIAAABYAB4AAgAXAAIAAABZAB4AAgAWAAIAAABaAB4AAgAXAAIAAABVAB4AAgAUAAIAAABWAB4AAgAVAAIAAABVAB0AAgAUAAIAAABWAB0AAgAUAAIAAABXAB0AAgAVAAIAAABYAB0AAgAWAAIAAABVABwAAgAUAAIAAABWABwAAgAUAAIAAABXABwAAgAVAAIAAABYABwAAgAWAAIAAABVABsAAgAUAAIAAABWABsAAgAUAAIAAABXABsAAgAVAAIAAABYABsAAgAWAAIAAABZABsAAgAXAAIAAABaABsAAgAWAAIAAABbABsAAgAXAAIAAABZABwAAgAXAAIAAABaABwAAgAWAAIAAABbABwAAgAXAAIAAABZAB0AAgAXAAIAAABaAB0AAgAWAAIAAABbAB0AAgAXAAIAAAAJAAcAAgALAA8AAAAJAAgAAgALAA4AAAAJAAkAAgALAA8AAAAKAAcAAgAMAA8AAAAKAAgAAgAMAA4AAAAKAAkAAgAMAA8AAAALAAcAAgANAA8AAAALAAgAAgANAA4AAAALAAkAAgANAA8AAAAMAAcAAgANAA8AAAAMAAgAAgALAA4AAAAMAAkAAgALAA8AAAANAAcAAgANAA8AAAANAAgAAgAMAA4AAAANAAkAAgAMAA8AAAAOAAcAAgAMAA8AAAAOAAgAAgANAA4AAAAOAAkAAgANAA8AAAAPAAcAAgANAA8AAAAPAAgAAgALAA4AAAAPAAkAAgALAA8AAAAQAAcAAgAMAA8AAAAQAAgAAgAMAA4AAAAQAAkAAgAMAA8AAAARAAcAAgANAA8AAAARAAgAAgANAA4AAAARAAkAAgANAA8AAAAPAAUAAgANAA0AAAAPAAYAAgANAA4AAAAQAAUAAgAMAA0AAAAQAAYAAgAMAA4AAAARAAUAAgANAA0AAAARAAYAAgANAA4AAAANAAUAAgANAA0AAAANAAYAAgANAA4AAAAOAAUAAgAMAA0AAAAOAAYAAgAMAA4AAAALAAUAAgANAA0AAAALAAYAAgANAA4AAAAMAAUAAgANAA0AAAAMAAYAAgANAA4AAAAKAAUAAgAMAA0AAAAKAAYAAgAMAA4AAAAJAAUAAgALAA0AAAAJAAYAAgALAA4AAAAAABgAAgALAA0AAGAAABkAAgALAA4AAAAAABoAAgALAA8AAAABABgAAgALAA4AAGABABkAAgAMAA4AAAABABoAAgAMAA8AAAACABgAAgALAA8AAGACABkAAgANAA4AAAACABoAAgANAA8AAAD//xgAAgALAA8AAGD+/xgAAgALAA4AAGD9/xgAAgALAA0AAGD//xkAAgALAA4AABD+/xkAAgAMAA4AABD9/xkAAgANAA4AABD//xoAAgALAA8AABD+/xoAAgAMAA8AABD9/xoAAgANAA8AABD8/xgAAgALAA0AAHD8/xkAAgAMAA0AAHD8/xoAAgALAA0AAHD7/xgAAgALAA4AAHD7/xkAAgAMAA4AAHD7/xoAAgALAA4AAHD6/xgAAgALAA8AAHD6/xkAAgAMAA8AAHD6/xoAAgALAA8AAHD8/xYAAgANAA0AAHD8/xcAAgAMAA0AAHD7/xYAAgANAA4AAHD7/xcAAgAMAA4AAHD6/xYAAgANAA8AAHD6/xcAAgAMAA8AAHD//xYAAgANAA8AAGD+/xYAAgANAA4AAGD9/xYAAgANAA0AAGD//xcAAgAMAA8AAGD+/xcAAgAMAA4AAGD9/xcAAgAMAA0AAGACABYAAgANAA8AAGABABYAAgANAA4AAGAAABYAAgANAA0AAGACABcAAgAMAA8AAGABABcAAgAMAA4AAGAAABcAAgAMAA0AAGAQAB4AAgAPAAgAAAAQAB8AAgAPAAkAAAAQACAAAgAPAAoAAAAQACEAAgAPAAsAAAARAB4AAgAQAAgAAAARAB8AAgAQAAkAAAARACAAAgAQAAoAAAARACEAAgAQAAsAAAASAB4AAgARAAgAAAASAB8AAgARAAkAAAASACAAAgARAAoAAAASACEAAgARAAsAAAATAB4AAgASAAgAAAATAB8AAgASAAkAAAATACAAAgASAAoAAAATACEAAgASAAsAAAAPAB4AAgAMAAkAAAAPAB8AAgAMAAoAAAAPACAAAgAMAAkAAAAPACEAAgAMAAoAAAAUAB4AAgAMAAkAAAAUAB8AAgAMAAoAAAAUACAAAgAMAAkAAAAUACEAAgAMAAoAAAAPACIAAgANAAkAAAAQACIAAgANAAkAAAARACIAAgANAAkAAAASACIAAgANAAkAAAATACIAAgANAAkAAAAUACIAAgANAAkAAAD4/wcAAgAAAAQAAAD4/wgAAgAAAAUAAAD4/wkAAgAAAAYAAAD4/woAAgAAAAcAAAD5/wcAAgABAAQAAAD5/wgAAgABAAUAAAD5/wkAAgABAAYAAAD5/woAAgABAAcAAAD6/wcAAgACAAQAAAD6/wgAAgACAAUAAAD6/wkAAgACAAYAAAD6/woAAgACAAcAAAD7/wcAAgADAAQAAAD7/wgAAgADAAUAAAD7/wkAAgADAAYAAAD7/woAAgADAAcAAAD8/wcAAgAEAAQAAAD8/wgAAgAEAAUAAAD8/wkAAgAEAAYAAAD8/woAAgAEAAcAAAD9/wcAAgAFAAQAAAD9/wgAAgAFAAUAAAD9/wkAAgAFAAYAAAD9/woAAgAFAAcAAAD+/wcAAgAGAAQAAAD+/wgAAgAGAAUAAAD+/wkAAgAGAAYAAAD+/woAAgAGAAcAAAD3/wcAAgALAAUAAAD3/wgAAgALAAYAAAD3/wkAAgALAAUAAAD3/woAAgALAAYAAAD3/wsAAgALAAcAAAD4/wsAAgANAAUAAAD5/wsAAgAMAAYAAAD6/wsAAgANAAYAAAD7/wsAAgANAAcAAAD8/wsAAgALAAUAAAD9/wsAAgANAAUAAAD+/wsAAgAMAAcAAAD//wsAAgANAAYAAAD//wgAAgANAAUAAAD//wkAAgANAAYAAAD//woAAgANAAcAAAD//wcAAgAMAAUAAAAfABMAAgAMAAEAAFAfABQAAgANAAEAAFAeABMAAgAMAAIAAFAeABQAAgANAAIAAFAhABMAAgAMAAEAAFAhABQAAgANAAEAAFAgABMAAgAMAAIAAFAgABQAAgANAAIAAFAjABMAAgAMAAEAAFAjABQAAgANAAEAAFAiABMAAgAMAAIAAFAiABQAAgANAAIAAFAjABEAAgANAAEAAFAjABIAAgANAAEAAFAiABEAAgANAAIAAFAiABIAAgANAAIAAFAhABEAAgANAAIAAFAhABIAAgANAAEAAFAgABEAAgANAAEAAFAgABIAAgANAAIAAFAfABEAAgANAAIAAFAfABIAAgANAAEAAFAeABEAAgANAAIAAFAeABIAAgANAAIAAFAfABAAAgAMAAIAAFAeABAAAgAMAAIAAFAgABAAAgAMAAEAAFAiABAAAgAMAAIAAFAhABAAAgAMAAIAAFAjABAAAgAMAAEAAFA7ABMAAgAEAAAAAAA7ABQAAgAEAAEAAAA7ABUAAgAEAAIAAAA7ABYAAgAEAAMAAAA8ABMAAgAFAAAAAAA8ABQAAgAFAAEAAAA8ABUAAgAFAAIAAAA8ABYAAgAFAAMAAAA9ABMAAgAGAAAAAAA9ABQAAgAGAAEAAAA9ABUAAgAGAAIAAAA9ABYAAgAGAAMAAAA+ABMAAgAHAAAAAAA+ABQAAgAHAAEAAAA+ABUAAgAHAAIAAAA+ABYAAgAHAAMAAAA6ABMAAgANAAUAAAA6ABQAAgANAAYAAAA6ABUAAgANAAcAAAA/ABMAAgALAAUAAAA/ABQAAgALAAYAAAA/ABUAAgALAAcAAAA6ABYAAgAMAAYAAAA/ABYAAgANAAUAAAA8ABcAAgAMAAYAAAA7ABcAAgALAAcAAAA6ABcAAgALAAYAAAA9ABcAAgANAAYAAAA+ABcAAgAMAAUAAAA/ABcAAgALAAUAAABFABgAAgAUAAIAAABFABkAAgAUAAMAAABFABoAAgAUAAQAAABGABgAAgAVAAIAAABGABkAAgAVAAMAAABGABoAAgAVAAQAAABHABgAAgAUAAIAAABHABkAAgAUAAMAAABHABoAAgAUAAQAAABIABgAAgAVAAIAAABIABkAAgAVAAMAAABIABoAAgAVAAQAAABJABgAAgAWAAIAAABJABkAAgAWAAMAAABJABoAAgAWAAQAAABKABgAAgAXAAIAAABKABkAAgAXAAMAAABKABoAAgAXAAQAAABFABMAAgAUAAAAAABFABQAAgAUAAEAAABFABUAAgAUAAIAAABGABMAAgAVAAAAAABGABQAAgAVAAEAAABGABUAAgAVAAIAAABHABMAAgAUAAAAAABHABQAAgAUAAEAAABHABUAAgAUAAIAAABIABMAAgAVAAAAAABIABQAAgAVAAEAAABIABUAAgAVAAIAAABJABMAAgAWAAAAAABJABQAAgAWAAEAAABJABUAAgAWAAIAAABKABMAAgAXAAAAAABKABQAAgAXAAEAAABKABUAAgAXAAIAAABFABYAAgAUAAEAAABFABcAAgAUAAIAAABGABYAAgAVAAEAAABGABcAAgAVAAIAAABHABYAAgAUAAEAAABHABcAAgAUAAIAAABIABYAAgAVAAEAAABIABcAAgAVAAIAAABJABYAAgAWAAEAAABJABcAAgAWAAIAAABKABYAAgAXAAEAAABKABcAAgAXAAIAAAA7ACMAAgAMAAEAAAA7ACQAAgAMAAIAAAA8ACMAAgANAAEAAAA8ACQAAgANAAIAAAA9ACMAAgAMAAEAAAA9ACQAAgAMAAIAAAA+ACMAAgANAAEAAAA+ACQAAgANAAIAAAA/ACMAAgAMAAEAAAA/ACQAAgAMAAIAAABAACMAAgANAAEAAABAACQAAgANAAIAAAA/ACEAAgAMAAIAAAA/ACIAAgAMAAIAAABAACEAAgANAAIAAABAACIAAgANAAIAAAA9ACEAAgANAAIAAAA9ACIAAgAMAAIAAAA+ACEAAgAMAAIAAAA+ACIAAgANAAIAAAA7ACEAAgAMAAIAAAA7ACIAAgAMAAIAAAA8ACEAAgAMAAIAAAA8ACIAAgANAAIAAAA7ACAAAgAMAAEAAAA8ACAAAgAMAAEAAAA9ACAAAgANAAEAAAA+ACAAAgAMAAEAAAA/ACAAAgAMAAEAAABAACAAAgANAAEAAABIACMAAgAAAAwAAABIACQAAgAAAA0AAABIACUAAgAAAA4AAABIACYAAgAAAA8AAABJACMAAgABAAwAAABJACQAAgABAA0AAABJACUAAgABAA4AAABJACYAAgABAA8AAABKACMAAgACAAwAAABKACQAAgACAA0AAABKACUAAgACAA4AAABKACYAAgACAA8AAABLACMAAgADAAwAAABLACQAAgADAA0AAABLACUAAgADAA4AAABLACYAAgADAA8AAABMACMAAgAEAAwAAABMACQAAgAEAA0AAABMACUAAgAEAA4AAABMACYAAgAEAA8AAABNACMAAgAFAAwAAABNACQAAgAFAA0AAABNACUAAgAFAA4AAABNACYAAgAFAA8AAABOACMAAgAGAAwAAABOACQAAgAGAA0AAABOACUAAgAGAA4AAABOACYAAgAGAA8AAABHACMAAgALAA0AAABHACQAAgALAA4AAABHACUAAgALAA8AAABPACUAAgALAA0AAABPACYAAgALAA4AAABPACcAAgALAA8AAABPACMAAgANAA0AAABPACQAAgANAA4AAABHACYAAgALAA4AAABHACcAAgALAA8AAABIACcAAgALAA8AAABJACcAAgAMAA8AAABKACcAAgANAA8AAABMACcAAgALAA0AAABNACcAAgAMAA0AAABOACcAAgANAA0AAABLACcAAgAMAA4AAAA=")
 tile_set = SubResource("TileSet_urp6f")
+
+[node name="Player" parent="." instance=ExtResource("2_dw050")]
+
+[node name="PistolPickup" parent="." instance=ExtResource("3_ksl3e")]
+visible = false
+position = Vector2(30, 0)
+
+[node name="WeaponPickupsTest" parent="." instance=ExtResource("6_2hs0m")]
+position = Vector2(-199, -14)
+
+[node name="ZombieSpawner" parent="." instance=ExtResource("7_1jxqw")]
+position = Vector2(580, -116)
+
