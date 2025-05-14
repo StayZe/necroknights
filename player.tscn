@@ -1,11 +1,13 @@
-[gd_scene load_steps=21 format=4 uid="uid://6t0kob2r68og"]
+[gd_scene load_steps=23 format=4 uid="uid://6t0kob2r68og"]
 
 [ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/players/1.png" id="1_4flbx"]
 [ext_resource type="Texture2D" uid="uid://c4u103tv3c26s" path="res://sprites/map/16x16/main_lev.png" id="1_i3pqv"]
+[ext_resource type="PackedScene" uid="uid://d3qpdawl3rg22" path="res://scenes/PlayerWithScript.tscn" id="2_dw050"]
 [ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="2_ysajf"]
 [ext_resource type="Texture2D" uid="uid://cuk6b0omib715" path="res://sprites/map/16x16/terrain_props_1.png" id="3_i3pqv"]
 [ext_resource type="PackedScene" uid="uid://dcfypb200ugsv" path="res://weapons/WeaponPickupExample.tscn" id="3_ksl3e"]
 [ext_resource type="PackedScene" uid="uid://13bn2c3xstdj" path="res://weapons/WeaponPickupsTest.tscn" id="6_2hs0m"]
+[ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="7_1jxqw"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sweqy"]
 texture = ExtResource("1_i3pqv")
@@ -7920,3 +7922,11 @@ visible = false
 position = Vector2(30, 0)
 
 [node name="WeaponPickupsTest" parent="." instance=ExtResource("6_2hs0m")]
+position = Vector2(-199, -14)
+
+[node name="ZombieSpawner" parent="." instance=ExtResource("7_1jxqw")]
+position = Vector2(580, -116)
+spawn_distance = 300.0
+
+[node name="Player" parent="." instance=ExtResource("2_dw050")]
+visible = false

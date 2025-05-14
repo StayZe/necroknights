@@ -179,3 +179,14 @@ func _on_flicker_timer_timeout():
 	# Play the flicker animation uniquement si on n'est pas en train de tirer
 	if !is_shooting:
 		animationPlayer.play("flicker") 
+
+# 📌 Gérer le spawn du projectile
+func spawn_projectile(direction: Vector2):
+	if projectile_scene:
+		var projectile = projectile_scene.instantiate()
+		get_parent().add_child(projectile)  # Ajoute le projectile à la scène
+		projectile.global_position = global_position + shoot_offset
+		projectile.direction = direction  # Applique la direction du tir
+		projectile.damage = 100.0  # Dégâts du sniper
+
+# ... existing code ... 
