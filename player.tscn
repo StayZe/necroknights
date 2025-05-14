@@ -16531,7 +16531,9 @@ position = Vector2(441, 448)
 script = SubResource("GDScript_4flbx")
 
 [node name="Camera2D" type="Camera2D" parent="player"]
-zoom = Vector2(4, 4)
+
+zoom = Vector2(3.5, 3.5)
+
 position_smoothing_enabled = true
 position_smoothing_speed = 1.0
 
@@ -16549,6 +16551,7 @@ root_node = NodePath("../sprite")
 libraries = {
 &"": SubResource("AnimationLibrary_1jxqw")
 }
+
 
 [node name="Player" parent="." instance=ExtResource("2_dw050")]
 

@@ -64,6 +64,7 @@ var player_in_range = false
 var current_player = null
 var anim_timer = 0.0  # Pour l'animation de frame au sol
 
+# Animation
 func _process(delta):
 	# Animation de flottaison
 	time += delta
