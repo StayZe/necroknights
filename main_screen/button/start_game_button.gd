@@ -32,7 +32,9 @@ func _on_Button_pressed() -> void:
 		"start":
 			get_tree().change_scene_to_file("res://player.tscn")  # ← adapte ce chemin
 		"help":
-			var label = get_parent().get_node("Label")
+			var label = get_parent().get_node("help_panel")
 			label.visible = true
+		"exit":
+			get_tree().quit()
 		_:
 			print("Aucune action définie pour :", action_type)

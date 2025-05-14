@@ -1,15 +1,24 @@
-[gd_scene load_steps=9 format=3 uid="uid://ndosd2imol5m"]
+[gd_scene load_steps=14 format=3 uid="uid://ndosd2imol5m"]
 
-[ext_resource type="VideoStream" path="res://video/zombie_bg.ogv" id="1_8pjg2"]
+[ext_resource type="VideoStream" uid="uid://s22obgey3mgw" path="res://main_screen/video/zombie_bg.ogv" id="1_8pjg2"]
 [ext_resource type="FontFile" uid="uid://dll06tmq2mx0h" path="res://main_screen/font/retro.ttf" id="2_330t7"]
 [ext_resource type="Script" uid="uid://dk1oooqs7bnoo" path="res://main_screen/button/start_game_button.gd" id="2_6553m"]
 [ext_resource type="AudioStream" uid="uid://cqlalskdcbqth" path="res://main_screen/sfx/hover_button_tick.wav" id="4_nvyca"]
 [ext_resource type="AudioStream" uid="uid://blp7f6ubv7gbl" path="res://main_screen/music/theme.ogg" id="4_ra6j4"]
 [ext_resource type="AudioStream" uid="uid://dxohakmg6n60o" path="res://main_screen/sfx/zombie_loop.mp3" id="6_63kl3"]
 [ext_resource type="Script" uid="uid://b3jq4dmghvjcp" path="res://main_screen/sfx/zombie.gd" id="7_0kqi6"]
+[ext_resource type="Texture2D" uid="uid://dhr62sn7rk7ap" path="res://main_screen/img/cross.png" id="8_4wwpr"]
+[ext_resource type="Script" uid="uid://jm513bjqp767" path="res://main_screen/button/cross.gd" id="9_oy4el"]
+[ext_resource type="Texture2D" uid="uid://baqvjx1myko1d" path="res://main_screen/img/arrow.png" id="10_oy4el"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7vrkn"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0kqi6"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r2400"]
+bg_color = Color(1, 1, 1, 1)
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -34,18 +43,19 @@ expand = true
 loop = true
 buffering_msec = 10
 
-[node name="start" type="Button" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 12
+anchors_preset = 2
 anchor_top = 1.0
-anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 72.0
-offset_top = -156.0
-offset_right = -1548.0
-offset_bottom = -115.0
-grow_horizontal = 2
+offset_left = 50.0
+offset_top = -181.0
+offset_right = 350.0
+offset_bottom = -50.0
 grow_vertical = 0
+
+[node name="start" type="Button" parent="VBoxContainer"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_330t7")
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_7vrkn")
@@ -55,18 +65,8 @@ alignment = 0
 script = ExtResource("2_6553m")
 action_type = "start"
 
-[node name="help" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 72.0
-offset_top = -108.0
-offset_right = -1548.0
-offset_bottom = -67.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="help" type="Button" parent="VBoxContainer"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_330t7")
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_7vrkn")
@@ -75,6 +75,17 @@ flat = true
 alignment = 0
 script = ExtResource("2_6553m")
 action_type = "help"
+
+[node name="exit" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_7vrkn")
+text = "Quit Game"
+flat = true
+alignment = 0
+script = ExtResource("2_6553m")
+action_type = "exit"
 
 [node name="HoverSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("4_nvyca")
@@ -105,3 +116,234 @@ theme_override_constants/shadow_outline_size = 10
 theme_override_fonts/font = ExtResource("2_330t7")
 theme_override_font_sizes/font_size = 52
 text = "NECROKNIGHTS"
+
+[node name="help_panel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_0kqi6")
+
+[node name="cross" type="TextureButton" parent="help_panel"]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 549.0
+offset_bottom = 549.0
+scale = Vector2(0.1, 0.1)
+action_mode = 0
+texture_normal = ExtResource("8_4wwpr")
+script = ExtResource("9_oy4el")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="help_panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -154.0
+offset_top = -106.0
+offset_right = 154.0
+offset_bottom = 106.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 25
+
+[node name="up" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/up"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "UP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/up"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/up"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "W"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="down" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/down"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "DOWN"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/down"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/down"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "S"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="left" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/left"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "LEFT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/left"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/left"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "A"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="right" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/right"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "RIGHT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/right"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/right"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "D"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="pick-up" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/pick-up"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "PICK-UP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/pick-up"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/pick-up"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="drop" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/drop"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "DROP ITEM"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/drop"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/drop"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "F"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label" type="Label" parent="help_panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -85.0
+offset_top = 50.0
+offset_right = 85.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+text = "CONTROL"
+vertical_alignment = 1
