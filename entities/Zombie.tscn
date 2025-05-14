@@ -1,0 +1,235 @@
+[gd_scene load_steps=15 format=3 uid="uid://dytjcokiwbrry"]
+
+[ext_resource type="Script" path="res://entities/Zombie.gd" id="1_gjq5t"]
+[ext_resource type="Texture2D" uid="uid://dqdgro7cvyrl7" path="res://sprites/zombies/Zombie 4_idle.png" id="2_6mbcr"]
+[ext_resource type="Texture2D" uid="uid://2gvrjq2uyqef" path="res://sprites/zombies/Zombie 4_death 4.png" id="2_l1qdh"]
+[ext_resource type="Texture2D" uid="uid://ctjxcuwbwsjub" path="res://sprites/zombies/Zombie 4_hit.png" id="3_pqq4r"]
+[ext_resource type="Texture2D" uid="uid://bp2sjbh3rbv7c" path="res://sprites/zombies/Zombie 4_knocked .png" id="4_i25m1"]
+[ext_resource type="Texture2D" uid="uid://bc4ygfnigk21p" path="res://sprites/zombies/Zombie 4_run.png" id="5_8olfw"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_q6uwi"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_jl6s7"]
+radius = 200.0
+
+[sub_resource type="Animation" id="Animation_c1jmx"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_fcl6p"]
+resource_name = "zombie_idle"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["idle"]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_e87v0"]
+_data = {
+"RESET": SubResource("Animation_c1jmx"),
+"zombie_idle": SubResource("Animation_fcl6p")
+}
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hul3c"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_l1qdh")
+}],
+"loop": false,
+"name": &"death",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_pqq4r")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_pqq4r")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_pqq4r")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_6mbcr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6mbcr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6mbcr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6mbcr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6mbcr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6mbcr")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_i25m1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_i25m1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_i25m1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_i25m1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_i25m1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_i25m1")
+}],
+"loop": false,
+"name": &"knocked",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_8olfw")
+}],
+"loop": true,
+"name": &"run",
+"speed": 10.0
+}]
+
+[node name="Zombie" type="CharacterBody2D" groups=["enemy"]]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_gjq5t")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_q6uwi")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_hul3c")
+animation = &"idle"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_e87v0")
+}
+
+[node name="AttackTimer" type="Timer" parent="."]
+wait_time = 1.0
+one_shot = true
+
+[node name="HitTimer" type="Timer" parent="."]
+wait_time = 0.4
+one_shot = true
+
+[node name="DetectionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_jl6s7")
+
+[node name="HealthLabel" type="Label" parent="."]
+offset_left = -26.0
+offset_top = -32.0
+offset_right = 26.0
+offset_bottom = -16.0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 10
+text = "HP: 100"
+horizontal_alignment = 1
+
+[connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]
+[connection signal="timeout" from="HitTimer" to="." method="_on_hit_timer_timeout"]
+[connection signal="body_entered" from="DetectionArea" to="." method="_on_detection_area_body_entered"]
+[connection signal="body_exited" from="DetectionArea" to="." method="_on_detection_area_body_exited"] 

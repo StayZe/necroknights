@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://13bn2c3xstdj"]
+
+[ext_resource type="PackedScene" uid="uid://dcfypb200ugsv" path="res://weapons/WeaponPickupExample.tscn" id="1_4r8pl"]
+[ext_resource type="PackedScene" uid="uid://bnw43mkxqvk3o" path="res://weapons/RiflePickup.tscn" id="2_ivh6j"]
+[ext_resource type="PackedScene" uid="uid://dvipthwtuvj3q" path="res://weapons/SniperPickup.tscn" id="3_22p3y"]
+
+[node name="WeaponPickupsTest" type="Node2D"]
+
+[node name="PistolPickup" parent="." instance=ExtResource("1_4r8pl")]
+position = Vector2(100, 100)
+
+[node name="RiflePickup" parent="." instance=ExtResource("2_ivh6j")]
+position = Vector2(200, 100)
+
+[node name="SniperPickup" parent="." instance=ExtResource("3_22p3y")]
+position = Vector2(300, 100)
+
+[node name="Label" type="Label" parent="."]
+offset_left = 90.0
+offset_top = 140.0
+offset_right = 137.0
+offset_bottom = 166.0
+text = "Pistol"
+
+[node name="Label2" type="Label" parent="."]
+offset_left = 190.0
+offset_top = 140.0
+offset_right = 237.0
+offset_bottom = 166.0
+text = "Rifle"
+
+[node name="Label3" type="Label" parent="."]
+offset_left = 285.0
+offset_top = 140.0
+offset_right = 332.0
+offset_bottom = 166.0
+text = "Sniper"
