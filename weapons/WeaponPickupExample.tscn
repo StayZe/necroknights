@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://cr5bok1l3ascq"]
+[gd_scene load_steps=5 format=3 uid="uid://dcfypb200ugsv"]
 
 [ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="1_1vu35"]
 [ext_resource type="PackedScene" uid="uid://dxhk1lsw212xd" path="res://weapons/Pistol.tscn" id="2_qhre3"]
