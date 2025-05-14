@@ -7,18 +7,18 @@ extends Weapon  # Hérite de la classe Weapon
 @onready var animationPlayer = $AnimationPlayer  # Reference to the animation player
 
 # Preload sprites for quick access
-var flicker_texture = preload("res://sprites/weapons/Pistol_Flicker.png")
-var shoot_texture = preload("res://sprites/weapons/Pistol_Shoot.png")
+var flicker_texture = preload("res://sprites/weapons/Rifle_Flicker.png")
+var shoot_texture = preload("res://sprites/weapons/Rifle_Shoot.png")
 var current_texture = null
 var is_shooting = false  # Pour éviter de tirer pendant une animation en cours
 var player_facing_right = true  # Direction à laquelle le joueur fait face
 var player_direction = "right"  # Direction du joueur (right, left, up, down)
 
 func _ready():
-	fire_rate = 0.4  # Tir rapide
-	reload_time = 1.2  # Temps de recharge rapide
-	ammo = 12
-	max_ammo = 12
+	fire_rate = 0.25  # Tir plus rapide que le pistol
+	reload_time = 1.5  # Temps de recharge un peu plus long
+	ammo = 30
+	max_ammo = 30
 	
 	# Set initial texture
 	current_texture = flicker_texture
@@ -39,7 +39,7 @@ func _ready():
 
 # Configure les spritesheets selon leur contenu
 func configure_sprites():
-	# Configurer le sprite Pistol_Flicker
+	# Configurer le sprite Rifle_Flicker
 	if sprite.texture == flicker_texture:
 		sprite.hframes = 7  # 7 frames horizontales 
 		sprite.frame = 0    # Commencer à la première frame
@@ -187,4 +187,4 @@ func spawn_projectile(direction: Vector2):
 		get_parent().add_child(projectile)  # Ajoute le projectile à la scène
 		projectile.global_position = global_position + shoot_offset
 		projectile.direction = direction  # Applique la direction du tir
-		projectile.damage = 20.0  # Dégâts du pistolet
+		projectile.damage = 25.0  # Dégâts du fusil d'assaut 
