@@ -16,6 +16,12 @@ func _ready():
 	# Sauvegarde de la position initiale pour l'animation de flottaison
 	initial_position = position
 	
+	# Vérification que weapon_scene est défini
+	if not weapon_scene:
+		print("ATTENTION: WeaponPickup créé sans weapon_scene défini")
+	else:
+		print("WeaponPickup initialisé avec: " + weapon_scene.resource_path)
+	
 	# Ajouter le sprite de l'arme si nécessaire
 	if $Sprite2D and weapon_scene:
 		# Vérifier le type d'arme
@@ -77,13 +83,18 @@ func _process(delta):
 	# Vérifier si le joueur peut ramasser l'arme
 	if player_in_range and Input.is_action_just_pressed("pickup"):
 		if current_player and current_player.has_method("equip_weapon"):
-			current_player.equip_weapon(weapon_scene)
-			queue_free()  # Supprimer le pickup après ramassage
+			if weapon_scene:
+				print("Joueur ramasse l'arme: " + weapon_scene.resource_path)
+				current_player.equip_weapon(weapon_scene)
+				queue_free()  # Supprimer le pickup après ramassage
+			else:
+				push_error("WeaponPickup: Tentative de ramasser une arme sans weapon_scene configuré")
 
 func _on_interaction_area_body_entered(body):
 	if body.is_in_group("player") or body.name == "player":
 		player_in_range = true
 		current_player = body
+		print("Joueur dans la zone du pickup, arme: " + (weapon_scene.resource_path if weapon_scene else "non configurée"))
 		show_pickup_prompt()
 
 func _on_interaction_area_body_exited(body):

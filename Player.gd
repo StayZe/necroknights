@@ -93,10 +93,64 @@ func update_facing_direction():
 			else:
 				last_direction = "walk-left"
 				anim.play("walk-left")
+	
+	# Ajuster la position de l'arme si nécessaire
+	if current_weapon:
+		adjust_weapon_position()
+
+# 📌 Ajuster la position de l'arme en fonction de la direction du joueur
+func adjust_weapon_position():
+	if not current_weapon:
+		return
+		
+	# Positions par défaut
+	var right_pos = Vector2(10, 0)
+	var left_pos = Vector2(-10, 0)
+	var up_pos = Vector2(0, -15)  # Position pour regarder vers le haut
+	var down_pos = Vector2(0, 5)  # Position pour regarder vers le bas
+	
+	# Déterminer la position selon la direction
+	if last_direction == "walk-up" or last_direction == "walk_up":
+		current_weapon.position = up_pos
+		# Si le joueur regarde vers le haut, l'arme doit être au-dessus
+		current_weapon.z_index = -1  # Pour s'assurer que l'arme apparaît derrière le joueur
+	elif last_direction == "walk-down" or last_direction == "walk_down":
+		current_weapon.position = down_pos
+		current_weapon.z_index = 1  # Pour s'assurer que l'arme apparaît devant le joueur
+	else:
+		# Pour les directions gauche/droite, ajuster selon que le joueur regarde à gauche ou à droite
+		current_weapon.position = right_pos if player_facing_right else left_pos
+		current_weapon.z_index = 0  # Réinitialiser le z_index
+	
+	# Orienter l'arme horizontalement selon la direction
+	if "sprite" in current_weapon and current_weapon.sprite:
+		current_weapon.sprite.flip_v = !player_facing_right
 
 # 📌 Gère l'utilisation de l'arme
 func handle_weapon():
-	var shoot_direction = (get_global_mouse_position() - global_position).normalized()
+	if not current_weapon:
+		return
+		
+	# Obtenir la position de la souris et la direction de tir
+	var mouse_pos = get_global_mouse_position()
+	var shoot_direction = (mouse_pos - global_position).normalized()
+	
+	# Orienter l'arme vers la souris si elle a une rotation
+	if current_weapon:
+		var angle_to_mouse = shoot_direction.angle()
+		
+		# Vérifier si la rotation doit être limitée en fonction de la direction du joueur
+		if player_facing_right:
+			# Pour la direction droite, l'angle doit être entre -90° et 90°
+			if angle_to_mouse > PI/2 and angle_to_mouse < 3*PI/2:
+				angle_to_mouse = 0  # Pointer horizontalement par défaut
+		else:
+			# Pour la direction gauche, l'angle doit être entre 90° et 270°
+			if angle_to_mouse < PI/2 or angle_to_mouse > 3*PI/2:
+				angle_to_mouse = PI  # Pointer horizontalement par défaut
+		
+		# Appliquer la rotation à l'arme
+		current_weapon.rotation = angle_to_mouse
 
 	if Input.is_action_pressed("shoot") and current_weapon:
 		current_weapon.shoot(shoot_direction)
@@ -115,6 +169,17 @@ func equip_weapon(new_weapon_scene: PackedScene):
 	# Instancier la nouvelle arme
 	current_weapon = new_weapon_scene.instantiate()
 	add_child(current_weapon)  # Ajoute l'arme au joueur
+	
+	# S'assurer que l'arme est visible et correctement positionnée
+	if current_weapon:
+		print("Arme équipée: " + current_weapon_scene_path)
+		
+		# Ajuster la position initiale selon la direction actuelle
+		adjust_weapon_position()
+		
+		# Si l'arme a une méthode pour configurer les sprites, l'appeler
+		if current_weapon.has_method("configure_sprites"):
+			current_weapon.configure_sprites()
 
 # 📌 Fonction pour déposer l'arme au sol
 func drop_weapon():
