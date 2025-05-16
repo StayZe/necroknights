@@ -13,8 +13,7 @@ func _ready() -> void:
 	connect("pressed", Callable(self, "_on_Button_pressed"))
 
 	# Initialiser le sound_player ici, une fois que la scène est prête
-	if get_parent().has_node("HoverSound"):
-		sound_player = get_parent().get_node("HoverSound")
+	sound_player = get_parent().get_parent().get_node("HoverSound")
 
 func _process(delta: float) -> void:
 	position.x = lerp(position.x, target_x, speed * delta)
