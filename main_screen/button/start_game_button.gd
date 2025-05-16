@@ -29,7 +29,7 @@ func _on_Button_mouse_exited() -> void:
 func _on_Button_pressed() -> void:
 	match action_type:
 		"start":
-			get_tree().change_scene_to_file("res://player.tscn")  # ← adapte ce chemin
+			get_tree().change_scene_to_file("res://map.tscn")  # ← adapte ce chemin
 		"help":
 			var label = get_parent().get_parent().get_node("help_panel")
 			label.visible = true

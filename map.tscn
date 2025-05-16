@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://cpmi2roxpc6fb" path="res://sprites/map/16x16/terrain_props_2.png" id="4_sweqy"]
 [ext_resource type="Texture2D" uid="uid://djhuguyf0rhf2" path="res://sprites/map/16x16/dec_props.png" id="5_ivps1"]
 [ext_resource type="PackedScene" uid="uid://13bn2c3xstdj" path="res://weapons/WeaponPickupsTest.tscn" id="6_2hs0m"]
-[ext_resource type="PackedScene" uid="uid://d3qpdawl3rg22" path="res://scenes/PlayerWithScript.tscn" id="6_nvl01"]
+[ext_resource type="PackedScene" uid="uid://d3qpdawl3rg22" path="res://entities/players/Player.tscn" id="6_nvl01"]
 [ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="7_1jxqw"]
 [ext_resource type="Texture2D" uid="uid://d34m5lb7wjbhy" path="res://sprites/map/16x16/buildings_roofs.png" id="8_dw050"]
 [ext_resource type="Texture2D" uid="uid://bmrgeah4iq3e4" path="res://sprites/map/16x16/buildings.png" id="8_ivps1"]

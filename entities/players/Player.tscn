@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3 uid="uid://d3qpdawl3rg22"]
 
 [ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/players/1.png" id="1_4flbx"]
-[ext_resource type="Script" uid="uid://s8minwgmys4j" path="res://Player.gd" id="1_5wkpq"]
+[ext_resource type="Script" uid="uid://s8minwgmys4j" path="res://entities/players/Player.gd" id="1_5wkpq"]
 [ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="3_xv1jl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
