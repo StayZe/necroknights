@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://ndosd2imol5m"]
 
-[ext_resource type="VideoStream" path="res://main_screen/video/zombie_bg.ogv" id="1_8pjg2"]
+[ext_resource type="VideoStream" uid="uid://bw6jes7cm3hc1" path="res://main_screen/video/zombie_bg.ogv" id="1_8pjg2"]
 [ext_resource type="FontFile" uid="uid://dll06tmq2mx0h" path="res://main_screen/font/retro.ttf" id="2_330t7"]
 [ext_resource type="Script" uid="uid://dk1oooqs7bnoo" path="res://main_screen/button/start_game_button.gd" id="2_6553m"]
 [ext_resource type="AudioStream" uid="uid://cqlalskdcbqth" path="res://main_screen/sfx/hover_button_tick.wav" id="4_nvyca"]
