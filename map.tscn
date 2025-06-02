@@ -1,5 +1,6 @@
-[gd_scene load_steps=33 format=4 uid="uid://6t0kob2r68og"]
+[gd_scene load_steps=36 format=4 uid="uid://6t0kob2r68og"]
 
+[ext_resource type="Script" uid="uid://c4oh1mlbeelpm" path="res://GameManager.gd" id="1_6qsgm"]
 [ext_resource type="Texture2D" uid="uid://c4u103tv3c26s" path="res://sprites/map/16x16/main_lev.png" id="1_i3pqv"]
 [ext_resource type="Texture2D" uid="uid://bi4s0gcoih0pm" path="res://sprites/map/16x16/mainlev_hills.png" id="2_hqtel"]
 [ext_resource type="Texture2D" uid="uid://cuk6b0omib715" path="res://sprites/map/16x16/terrain_props_1.png" id="3_i3pqv"]
@@ -11,6 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://clb5ukqbqupyr" path="res://entities/ZombieSpawner.tscn" id="7_1jxqw"]
 [ext_resource type="Texture2D" uid="uid://d34m5lb7wjbhy" path="res://sprites/map/16x16/buildings_roofs.png" id="8_dw050"]
 [ext_resource type="Texture2D" uid="uid://bmrgeah4iq3e4" path="res://sprites/map/16x16/buildings.png" id="8_ivps1"]
+[ext_resource type="PackedScene" uid="uid://bwq8h8v7yxmqr" path="res://UI/WaveUI.tscn" id="12_0t07s"]
+[ext_resource type="PackedScene" uid="uid://c8mk2mav4xmqp" path="res://UI/PauseMenu.tscn" id="14_ooc2g"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sweqy"]
 texture = ExtResource("1_i3pqv")
@@ -16343,6 +16346,7 @@ sources/2 = SubResource("TileSetAtlasSource_ivps1")
 
 [node name="main" type="Node2D"]
 position = Vector2(-546, 247)
+script = ExtResource("1_6qsgm")
 
 [node name="Sol" type="TileMapLayer" parent="."]
 position = Vector2(146, -201)
@@ -16397,4 +16401,14 @@ position = Vector2(30, 0)
 position = Vector2(531, 396)
 
 [node name="ZombieSpawner" parent="." instance=ExtResource("7_1jxqw")]
-position = Vector2(580, -116)
+position = Vector2(820, 229)
+
+[node name="WaveUI" parent="." instance=ExtResource("12_0t07s")]
+
+[node name="ZombieSpawner2" parent="." instance=ExtResource("7_1jxqw")]
+position = Vector2(1151, 551)
+
+[node name="ZombieSpawner3" parent="." instance=ExtResource("7_1jxqw")]
+position = Vector2(212, 405)
+
+[node name="PauseMenu" parent="." instance=ExtResource("14_ooc2g")]
