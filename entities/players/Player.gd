@@ -31,6 +31,10 @@ func _ready():
 	health = max_health
 	update_health_display()
 	
+	# S'enregistrer auprès du WaveManager
+	if get_node_or_null("/root/WaveManager"):
+		WaveManager.register_player(self)
+	
 	if weapon:
 		current_weapon = get_node(weapon)
 	
