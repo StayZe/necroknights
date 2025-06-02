@@ -19161,7 +19161,6 @@ visible = false
 position = Vector2(30, 0)
 
 [node name="WeaponPickupsTest" parent="." instance=ExtResource("6_2hs0m")]
-visible = false
 position = Vector2(486, 70)
 
 [node name="ZombieSpawner" parent="." instance=ExtResource("7_1jxqw")]
@@ -19183,7 +19182,5 @@ scale = Vector2(2, 2)
 skew = 0.191986
 
 [node name="WaveUI" parent="." instance=ExtResource("12_0t07s")]
-visible = false
 
 [node name="PauseMenu" parent="." instance=ExtResource("14_ooc2g")]
-visible = false
