@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://bwq8h8v7yxmqr"]
+[gd_scene load_steps=5 format=3 uid="uid://bwq8h8v7yxmqr"]
 
 [ext_resource type="Script" path="res://UI/WaveUI.gd" id="1_8k4qh"]
 
@@ -20,6 +20,12 @@ font_color = Color(0, 1, 1, 1)
 outline_size = 1
 outline_color = Color(0, 0, 0, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_4"]
+font_size = 18
+font_color = Color(1, 0.84, 0, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+
 [node name="WaveUI" type="CanvasLayer"]
 layer = 50
 script = ExtResource("1_8k4qh")
@@ -37,7 +43,7 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = -100.0
+offset_top = -120.0
 offset_right = 400.0
 offset_bottom = -20.0
 
@@ -50,6 +56,11 @@ label_settings = SubResource("LabelSettings_1")
 layout_mode = 2
 text = "Zombies: 0/0"
 label_settings = SubResource("LabelSettings_2")
+
+[node name="CoinsLabel" type="Label" parent="UI/WaveInfo"]
+layout_mode = 2
+text = "💰 Pièces: 0"
+label_settings = SubResource("LabelSettings_4")
 
 [node name="RecordLabel" type="Label" parent="UI/WaveInfo"]
 layout_mode = 2

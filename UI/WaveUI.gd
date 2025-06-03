@@ -4,6 +4,7 @@ class_name WaveUI
 @onready var wave_label = $UI/WaveInfo/WaveLabel
 @onready var zombies_label = $UI/WaveInfo/ZombiesLabel
 @onready var record_label = $UI/WaveInfo/RecordLabel
+@onready var coins_label = $UI/WaveInfo/CoinsLabel
 @onready var pause_timer = $UI/PauseTimer
 
 var current_wave_active = false
@@ -16,6 +17,15 @@ func _ready():
 		WaveManager.wave_break_started.connect(_on_wave_break_started)
 		WaveManager.wave_break_updated.connect(_on_wave_break_updated)
 	
+	# Se connecter au signal de pièces du GameManager
+	if GameManager:
+		GameManager.coins_changed.connect(_on_coins_changed)
+		print("💰 WaveUI connecté au signal coins_changed du GameManager")
+		# Initialiser l'affichage des pièces
+		_on_coins_changed(GameManager.get_coins())
+	else:
+		print("❌ Erreur: GameManager non trouvé dans WaveUI!")
+	
 	# Charger et afficher le record initial
 	_update_record_display()
 
@@ -25,6 +35,14 @@ func _process(_delta):
 		var wave_info = WaveManager.get_current_wave_info()
 		var killed = wave_info.zombies_total - wave_info.zombies_remaining
 		zombies_label.text = "Zombies: " + str(killed) + "/" + str(wave_info.zombies_total)
+
+func _on_coins_changed(new_amount: int):
+	print("💰 WaveUI: mise à jour des pièces -> " + str(new_amount))
+	if coins_label:
+		coins_label.text = "💰 Pièces: " + str(new_amount)
+		print("✅ Label des pièces mis à jour!")
+	else:
+		print("❌ Erreur: coins_label non trouvé!")
 
 func _on_wave_started(wave_number: int):
 	current_wave_active = true
