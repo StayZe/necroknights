@@ -1,0 +1,84 @@
+[gd_scene load_steps=5 format=3 uid="uid://bwq8h8v7yxmqr"]
+
+[ext_resource type="Script" path="res://UI/WaveUI.gd" id="1_8k4qh"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1"]
+font_size = 24
+font_color = Color(1, 1, 1, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_2"]
+font_size = 18
+font_color = Color(0.8, 0.8, 0.8, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_3"]
+font_size = 16
+font_color = Color(0, 1, 1, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_4"]
+font_size = 18
+font_color = Color(1, 0.84, 0, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+
+[node name="WaveUI" type="CanvasLayer"]
+layer = 50
+script = ExtResource("1_8k4qh")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="WaveInfo" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -120.0
+offset_right = 400.0
+offset_bottom = -20.0
+
+[node name="WaveLabel" type="Label" parent="UI/WaveInfo"]
+layout_mode = 2
+text = "Manche I"
+label_settings = SubResource("LabelSettings_1")
+
+[node name="ZombiesLabel" type="Label" parent="UI/WaveInfo"]
+layout_mode = 2
+text = "Zombies: 0/0"
+label_settings = SubResource("LabelSettings_2")
+
+[node name="CoinsLabel" type="Label" parent="UI/WaveInfo"]
+layout_mode = 2
+text = "💰 Pièces: 0"
+label_settings = SubResource("LabelSettings_4")
+
+[node name="RecordLabel" type="Label" parent="UI/WaveInfo"]
+layout_mode = 2
+text = "Record: 0 manches"
+label_settings = SubResource("LabelSettings_3")
+
+[node name="PauseTimer" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 60.0
+text = "Pause: 20s
+Santé régénérée!"
+horizontal_alignment = 1
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_1")
+visible = false 

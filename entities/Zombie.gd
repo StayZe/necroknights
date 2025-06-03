@@ -26,6 +26,9 @@ var current_state = State.IDLE
 var health = max_health
 var can_attack = true
 
+# Précharger la scène de pièce
+var coin_scene = preload("res://entities/Coin.tscn")
+
 func _ready():
 	health = max_health
 	attack_timer.wait_time = attack_cooldown
@@ -112,11 +115,58 @@ func take_damage(damage_amount):
 		change_state(State.DEATH)
 		# Désactiver la collision
 		$CollisionShape2D.set_deferred("disabled", true)
+		
+		# Drop des pièces avant de supprimer le zombie
+		drop_coins()
+		
 		# Supprimer le zombie après l'animation de mort
 		await sprite.animation_finished
 		queue_free()
 	else:
 		change_state(State.HIT)
+
+func drop_coins():
+	# Probabilités de drop: 50% pour 1 pièce, 30% pour 2 pièces, 20% pour 3 pièces
+	var random_value = randf() * 100
+	var coins_to_drop = 1
+	
+	if random_value <= 50:
+		coins_to_drop = 1
+	elif random_value <= 80:
+		coins_to_drop = 2
+	else:
+		coins_to_drop = 3
+	
+	# Vérifier que la scène coin existe
+	if not coin_scene:
+		return
+	
+	# Trouver le nœud parent approprié pour ajouter les pièces
+	var scene_root = get_tree().current_scene
+	if not scene_root:
+		return
+	
+	# Stocker la position du zombie avant sa suppression
+	var zombie_position = global_position
+	
+	# Créer et placer les pièces
+	for i in range(coins_to_drop):
+		var coin = coin_scene.instantiate()
+		if not coin:
+			continue
+		
+		# Position aléatoire autour du zombie
+		var offset = Vector2(
+			randf_range(-50, 50),
+			randf_range(-50, 50)
+		)
+		var coin_position = zombie_position + offset
+		
+		# Ajouter la pièce à la scène d'abord
+		scene_root.add_child(coin)
+		
+		# Puis définir la position APRÈS l'ajout à la scène
+		coin.global_position = coin_position
 
 func update_health_display():
 	if health_label:

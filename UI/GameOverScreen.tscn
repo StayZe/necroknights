@@ -1,0 +1,69 @@
+[gd_scene load_steps=3 format=3 uid="uid://bqmgvn68bcrxi"]
+
+[ext_resource type="Script" path="res://UI/GameOverScreen.gd" id="1_0hwjx"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_abc123"]
+font_size = 32
+font_color = Color(0.8, 0.1, 0.1, 1)
+
+[node name="GameOverScreen" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_0hwjx")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.5, 0, 0, 0.7)
+
+[node name="GameOverPanel" type="Panel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+modulate = Color(0.8, 0.8, 0.8, 0.95)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="TitleLabel" type="Label" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+text = "You are dead"
+label_settings = SubResource("LabelSettings_abc123")
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsContainer" type="VBoxContainer" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ZombiesKilledLabel" type="Label" parent="GameOverPanel/VBoxContainer/StatsContainer"]
+layout_mode = 2
+text = "Zombies killed: 0"
+horizontal_alignment = 1
+
+[node name="WavesCompletedLabel" type="Label" parent="GameOverPanel/VBoxContainer/StatsContainer"]
+layout_mode = 2
+text = "Round Finish: 0"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ReturnButton" type="Button" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+text = "Quit" 

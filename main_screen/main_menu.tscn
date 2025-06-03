@@ -179,7 +179,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_330t7")
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
-text = "W"
+text = "Z"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -239,7 +239,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_330t7")
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
-text = "A"
+text = "Q"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -330,6 +330,66 @@ theme_override_fonts/font = ExtResource("2_330t7")
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
 text = "F"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="reload" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/reload"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "RELOAD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/reload"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/reload"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "R"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="shoot" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/shoot"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "SHOOT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/shoot"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/shoot"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "LEFT CLICK"
 horizontal_alignment = 1
 vertical_alignment = 1
 

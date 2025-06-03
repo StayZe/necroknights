@@ -1,0 +1,377 @@
+[gd_scene load_steps=8 format=3 uid="uid://c8mk2mav4xmqp"]
+
+[ext_resource type="Script" path="res://UI/PauseMenu.gd" id="1_pause"]
+[ext_resource type="FontFile" uid="uid://dll06tmq2mx0h" path="res://main_screen/font/retro.ttf" id="2_retro"]
+[ext_resource type="Texture2D" uid="uid://baqvjx1myko1d" path="res://main_screen/img/arrow.png" id="3_arrow"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1"]
+font_size = 32
+font_color = Color(1, 1, 1, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_white"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_2"]
+font_size = 24
+font_color = Color(1, 1, 1, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+script = ExtResource("1_pause")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.4)
+
+[node name="PausePanel" type="Panel" parent="UI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+modulate = Color(0.6, 0.6, 0.6, 0.95)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/PausePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -120.0
+offset_right = 150.0
+offset_bottom = 120.0
+
+[node name="TitleLabel" type="Label" parent="UI/PausePanel/VBoxContainer"]
+layout_mode = 2
+text = "GAME PAUSED"
+horizontal_alignment = 1
+label_settings = SubResource("LabelSettings_1")
+
+[node name="Spacer1" type="Control" parent="UI/PausePanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="ResumeButton" type="Button" parent="UI/PausePanel/VBoxContainer"]
+layout_mode = 2
+text = "Resume"
+
+[node name="ControlsButton" type="Button" parent="UI/PausePanel/VBoxContainer"]
+layout_mode = 2
+text = "Controls"
+
+[node name="QuitButton" type="Button" parent="UI/PausePanel/VBoxContainer"]
+layout_mode = 2
+text = "Quit"
+
+[node name="ControlsPanel" type="Panel" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_black")
+
+[node name="TitleLabel" type="Label" parent="UI/ControlsPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -85.0
+offset_top = 50.0
+offset_right = 85.0
+offset_bottom = 100.0
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+text = "CONTROL"
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/ControlsPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -154.0
+offset_top = -106.0
+offset_right = 154.0
+offset_bottom = 106.0
+theme_override_constants/separation = 25
+
+[node name="up" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/up"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "UP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/up"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/up"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "Z"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="down" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/down"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "DOWN"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/down"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/down"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "S"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="left" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/left"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "LEFT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/left"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/left"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "Q"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="right" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/right"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "RIGHT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/right"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/right"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "D"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="pick-up" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/pick-up"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "PICK-UP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/pick-up"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/pick-up"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="drop" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/drop"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "DROP ITEM"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/drop"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/drop"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "F"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="reload" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/reload"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "RELOAD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/reload"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/reload"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "R"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="shoot" type="HBoxContainer" parent="UI/ControlsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ControlsPanel/VBoxContainer/shoot"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "SHOOT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="UI/ControlsPanel/VBoxContainer/shoot"]
+layout_mode = 2
+texture = ExtResource("3_arrow")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="UI/ControlsPanel/VBoxContainer/shoot"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_white")
+text = "LEFT CLICK"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" type="Button" parent="UI/ControlsPanel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 50.0
+offset_right = -50.0
+offset_bottom = 100.0
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 24
+text = "Back" 
