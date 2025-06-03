@@ -20,8 +20,18 @@ var invulnerability_time: float = 0.5  # Temps d'invulnérabilité après avoir 
 var current_weapon: Weapon = null  # Référence à l'arme actuelle
 @export var weapon_pickup_scene: PackedScene  # La scène de pickup d'arme à utiliser
 
+# 📌 Système à 2 slots d'armes
+var weapon_slot_1: Weapon = null  # Arme dans le slot 1
+var weapon_slot_2: Weapon = null  # Arme dans le slot 2
+var weapon_slot_1_scene_path: String = ""  # Chemin de la scène de l'arme du slot 1
+var weapon_slot_2_scene_path: String = ""  # Chemin de la scène de l'arme du slot 2
+var active_weapon_slot: int = 0  # 0 = aucune arme, 1 = slot 1, 2 = slot 2
+
 # Pour stocker le chemin de la scène de l'arme originale
 var current_weapon_scene_path: String = ""
+
+# DEBUG: Test rapide du Game Over (à supprimer après test)
+var debug_game_over = false
 
 func _ready():
 	# Ajouter le joueur au groupe pour la détection
@@ -45,12 +55,18 @@ func _physics_process(delta):
 	update_facing_direction()
 	move_and_slide()
 	
+	# 📌 Gestion du changement d'arme avec les touches 1 et 2
+	if Input.is_action_just_pressed("weapon_slot_1"):
+		switch_to_weapon_slot(1)
+	elif Input.is_action_just_pressed("weapon_slot_2"):
+		switch_to_weapon_slot(2)
+	
 	if current_weapon:
 		handle_weapon()
 		
 	# Gérer la dépose d'arme avec la touche F
 	if Input.is_action_just_pressed("drop") and current_weapon:
-		drop_weapon()
+		drop_current_weapon()
 
 # 📌 Gère le déplacement et les animations
 func get_input():
@@ -164,53 +180,123 @@ func handle_weapon():
 
 # 📌 Fonction pour changer d'arme
 func equip_weapon(new_weapon_scene: PackedScene):
-	if current_weapon:
-		current_weapon.queue_free()  # Supprime l'ancienne arme
+	# Détermine quel slot utiliser
+	var target_slot = 1
+	if weapon_slot_1 != null and weapon_slot_2 == null:
+		target_slot = 2
+	elif weapon_slot_1 != null and weapon_slot_2 != null:
+		# Les deux slots sont pleins, remplacer l'arme active ou le slot 1 par défaut
+		target_slot = active_weapon_slot if active_weapon_slot > 0 else 1
+	
+	# Libérer l'arme du slot cible s'il y en a une
+	if target_slot == 1 and weapon_slot_1 != null:
+		weapon_slot_1.queue_free()
+		weapon_slot_1 = null
+		weapon_slot_1_scene_path = ""
+	elif target_slot == 2 and weapon_slot_2 != null:
+		weapon_slot_2.queue_free()
+		weapon_slot_2 = null
+		weapon_slot_2_scene_path = ""
+	
+	# Créer la nouvelle arme
+	var new_weapon = new_weapon_scene.instantiate()
+	add_child(new_weapon)
+	
+	# Configurer l'arme (cacher par défaut)
+	new_weapon.visible = false
+	
+	# L'assigner au bon slot
+	if target_slot == 1:
+		weapon_slot_1 = new_weapon
+		weapon_slot_1_scene_path = new_weapon_scene.resource_path
+		print("Arme équipée dans le slot 1: " + weapon_slot_1_scene_path)
+	else:
+		weapon_slot_2 = new_weapon
+		weapon_slot_2_scene_path = new_weapon_scene.resource_path
+		print("Arme équipée dans le slot 2: " + weapon_slot_2_scene_path)
+	
+	# Activer cette arme automatiquement
+	switch_to_weapon_slot(target_slot)
+	
+	# Si l'arme a une méthode pour configurer les sprites, l'appeler
+	if new_weapon.has_method("configure_sprites"):
+		new_weapon.configure_sprites()
 
-	# Sauvegarder le chemin de la scène de l'arme
-	current_weapon_scene_path = new_weapon_scene.resource_path
+# 📌 Fonction pour changer de slot d'arme actif
+func switch_to_weapon_slot(slot_number: int):
+	# Cacher toutes les armes
+	hide_all_weapons()
 	
-	# Instancier la nouvelle arme
-	current_weapon = new_weapon_scene.instantiate()
-	add_child(current_weapon)  # Ajoute l'arme au joueur
+	# Réinitialiser l'état actuel
+	current_weapon = null
+	current_weapon_scene_path = ""
+	active_weapon_slot = 0
 	
-	# S'assurer que l'arme est visible et correctement positionnée
-	if current_weapon:
-		print("Arme équipée: " + current_weapon_scene_path)
-		
-		# Ajuster la position initiale selon la direction actuelle
-		adjust_weapon_position()
-		
-		# Si l'arme a une méthode pour configurer les sprites, l'appeler
-		if current_weapon.has_method("configure_sprites"):
-			current_weapon.configure_sprites()
+	# Activer l'arme du slot demandé
+	match slot_number:
+		1:
+			if weapon_slot_1:
+				current_weapon = weapon_slot_1
+				current_weapon_scene_path = weapon_slot_1_scene_path
+				active_weapon_slot = 1
+				current_weapon.visible = true
+				adjust_weapon_position()
+		2:
+			if weapon_slot_2:
+				current_weapon = weapon_slot_2
+				current_weapon_scene_path = weapon_slot_2_scene_path
+				active_weapon_slot = 2
+				current_weapon.visible = true
+				adjust_weapon_position()
+
+# 📌 Fonction helper pour cacher toutes les armes
+func hide_all_weapons():
+	if weapon_slot_1:
+		weapon_slot_1.visible = false
+	if weapon_slot_2:
+		weapon_slot_2.visible = false
 
 # 📌 Fonction pour déposer l'arme au sol
-func drop_weapon():
-	if current_weapon and current_weapon_scene_path:
-		# Créer un pickup d'arme
-		var pickup = weapon_pickup_scene.instantiate()
-		get_parent().add_child(pickup)
+func drop_current_weapon():
+	if not current_weapon or active_weapon_slot == 0:
+		print("Aucune arme à déposer")
+		return
 		
-		# Configurer le pickup avec la bonne scène d'arme
-		var weapon_scene = load(current_weapon_scene_path)
-		pickup.weapon_scene = weapon_scene
+	# Créer un pickup d'arme
+	var pickup = weapon_pickup_scene.instantiate()
+	get_parent().add_child(pickup)
+	
+	# Configurer le pickup avec la bonne scène d'arme
+	var weapon_scene = load(current_weapon_scene_path)
+	pickup.weapon_scene = weapon_scene
+	
+	# Positionner le pickup proche du joueur
+	var drop_direction = Vector2.RIGHT
+	if last_direction == "walk-left":
+		drop_direction = Vector2.LEFT
+	elif last_direction == "walk-up":
+		drop_direction = Vector2.UP
+	elif last_direction == "walk-down":
+		drop_direction = Vector2.DOWN
 		
-		# Positionner le pickup proche du joueur
-		var drop_direction = Vector2.RIGHT
-		if last_direction == "walk-left":
-			drop_direction = Vector2.LEFT
-		elif last_direction == "walk-up":
-			drop_direction = Vector2.UP
-		elif last_direction == "walk-down":
-			drop_direction = Vector2.DOWN
-			
-		pickup.global_position = global_position + drop_direction * 30
-		
-		# Supprimer l'arme actuelle
-		current_weapon.queue_free()
-		current_weapon = null
-		current_weapon_scene_path = ""
+	pickup.global_position = global_position + drop_direction * 30
+	
+	# Supprimer l'arme du slot actif
+	if active_weapon_slot == 1:
+		weapon_slot_1.queue_free()
+		weapon_slot_1 = null
+		weapon_slot_1_scene_path = ""
+		print("Arme du slot 1 déposée")
+	elif active_weapon_slot == 2:
+		weapon_slot_2.queue_free()
+		weapon_slot_2 = null
+		weapon_slot_2_scene_path = ""
+		print("Arme du slot 2 déposée")
+	
+	# Réinitialiser les références
+	current_weapon = null
+	current_weapon_scene_path = ""
+	active_weapon_slot = 0
 
 # 📌 Fonction pour mettre à jour l'affichage de la santé
 func update_health_display():
@@ -247,4 +333,9 @@ func take_damage(damage_amount):
 func die():
 	# Animation de mort ou game over
 	print("Le joueur est mort !")
-	# À compléter avec la logique de game over 
+	
+	# Appeler le système de Game Over du WaveManager
+	if get_node_or_null("/root/WaveManager"):
+		WaveManager.trigger_game_over()
+	else:
+		print("Erreur: WaveManager non trouvé pour déclencher le Game Over")

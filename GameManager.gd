@@ -3,13 +3,42 @@ extends Node
 # Gestionnaire principal du jeu (Singleton)
 var game_started = false
 
+# Référence à l'écran de Game Over
+var game_over_screen: CanvasLayer = null
+
+# Système de pièces
+var coins = 0
+signal coins_changed(new_amount)
+
 func _ready():
+	# Précharger et instancier l'écran de Game Over
+	setup_game_over_screen()
+	
 	# Attendre un peu que tout soit initialisé
 	await get_tree().create_timer(1.0).timeout
 	start_game()
 
+func setup_game_over_screen():
+	# Précharger la scène de Game Over
+	var game_over_scene = preload("res://UI/GameOverScreen.tscn")
+	game_over_screen = game_over_scene.instantiate()
+	
+	# Ajouter l'écran de Game Over à la scène actuelle
+	get_tree().current_scene.add_child(game_over_screen)
+	
+	# Connecter le signal de Game Over du WaveManager
+	if WaveManager:
+		WaveManager.game_over.connect(_on_game_over)
+		print("Écran de Game Over connecté au WaveManager")
+	else:
+		print("Erreur: WaveManager non trouvé pour la connexion Game Over")
+
 func start_game():
 	print("🎮 Démarrage du jeu...")
+	
+	# Réinitialiser les pièces
+	coins = 0
+	coins_changed.emit(coins)
 	
 	# Vérifier que le WaveManager existe
 	if not get_node_or_null("/root/WaveManager"):
@@ -25,6 +54,29 @@ func start_game():
 	
 	print("🚀 Système de manches démarré!")
 
+# Fonction pour ajouter des pièces
+func add_coins(amount: int):
+	print("💰 GameManager.add_coins appelé avec: " + str(amount))
+	coins += amount
+	print("💰 Nouveau total de pièces: " + str(coins))
+	coins_changed.emit(coins)
+	print("💰 Signal coins_changed émis avec: " + str(coins))
+	print("💰 Pièces récupérées: +" + str(amount) + " (Total: " + str(coins) + ")")
+
+# Fonction pour obtenir le nombre de pièces
+func get_coins() -> int:
+	return coins
+
+# Fonction appelée quand le Game Over est déclenché
+func _on_game_over(zombies_killed: int, waves_completed: int):
+	print("Game Over détecté avec " + str(zombies_killed) + " zombies tués et " + str(waves_completed) + " manches terminées")
+	
+	# Afficher l'écran de Game Over
+	if game_over_screen:
+		game_over_screen.show_game_over(zombies_killed, waves_completed)
+	else:
+		print("Erreur: Écran de Game Over non trouvé")
+
 func _input(event):
 	# Possibilité de redémarrer le jeu avec une touche (pour le debug)
 	if event.is_action_pressed("ui_accept") and not game_started:
@@ -33,8 +85,13 @@ func _input(event):
 # Fonction pour retourner au menu principal (appelée depuis PauseMenu)
 func return_to_main_menu():
 	print("Retour au menu principal...")
-	# Ici tu peux ajouter la logique pour changer de scène
-	# get_tree().change_scene_to_file("res://MainMenu.tscn")
 	
-	# Pour l'instant, on quitte le jeu
-	get_tree().quit() 
+	# Nettoyer le WaveManager avant de changer de scène
+	if WaveManager:
+		WaveManager.cleanup()
+	
+	# Reprendre le jeu au cas où il serait en pause
+	get_tree().paused = false
+	
+	# Retourner au menu principal
+	get_tree().change_scene_to_file("res://main_screen/main_menu.tscn") 
