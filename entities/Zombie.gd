@@ -137,28 +137,22 @@ func drop_coins():
 	else:
 		coins_to_drop = 3
 	
-	print("💰 Zombie drop " + str(coins_to_drop) + " pièce(s)")
-	
 	# Vérifier que la scène coin existe
 	if not coin_scene:
-		print("❌ Erreur: scène coin non trouvée!")
 		return
 	
 	# Trouver le nœud parent approprié pour ajouter les pièces
 	var scene_root = get_tree().current_scene
 	if not scene_root:
-		print("❌ Erreur: scene_root non trouvée!")
 		return
 	
 	# Stocker la position du zombie avant sa suppression
 	var zombie_position = global_position
-	print("🧟 Position du zombie: " + str(zombie_position))
 	
 	# Créer et placer les pièces
 	for i in range(coins_to_drop):
 		var coin = coin_scene.instantiate()
 		if not coin:
-			print("❌ Erreur: impossible d'instancier la pièce!")
 			continue
 		
 		# Position aléatoire autour du zombie
@@ -168,21 +162,11 @@ func drop_coins():
 		)
 		var coin_position = zombie_position + offset
 		
-		print("💰 Tentative de création pièce " + str(i+1) + " à la position: " + str(coin_position))
-		
 		# Ajouter la pièce à la scène d'abord
 		scene_root.add_child(coin)
 		
 		# Puis définir la position APRÈS l'ajout à la scène
 		coin.global_position = coin_position
-		
-		print("💰 Position finale de la pièce " + str(i+1) + ": " + str(coin.global_position))
-		
-		# Vérifier que la pièce a bien été ajoutée
-		if coin.get_parent():
-			print("✅ Pièce " + str(i+1) + " ajoutée avec succès à la position: " + str(coin.global_position))
-		else:
-			print("❌ Erreur: pièce " + str(i+1) + " non ajoutée!")
 
 func update_health_display():
 	if health_label:

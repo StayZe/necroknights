@@ -56,12 +56,8 @@ func start_game():
 
 # Fonction pour ajouter des pièces
 func add_coins(amount: int):
-	print("💰 GameManager.add_coins appelé avec: " + str(amount))
 	coins += amount
-	print("💰 Nouveau total de pièces: " + str(coins))
 	coins_changed.emit(coins)
-	print("💰 Signal coins_changed émis avec: " + str(coins))
-	print("💰 Pièces récupérées: +" + str(amount) + " (Total: " + str(coins) + ")")
 
 # Fonction pour obtenir le nombre de pièces
 func get_coins() -> int:
