@@ -6,6 +6,7 @@ signal wave_completed(wave_number)
 signal wave_break_started(time_left)
 signal wave_break_updated(time_left)
 signal new_record(wave_number)
+signal game_over(zombies_killed, waves_completed)
 
 # Variables d'état
 var current_wave: int = 0
@@ -15,6 +16,9 @@ var zombies_remaining: int = 0
 var zombies_spawned: int = 0
 var total_zombies_in_wave: int = 0
 
+# Statistiques de jeu
+var total_zombies_killed: int = 0
+
 # Système de records
 var max_wave_completed: int = 0
 var save_file_path = "user://necroknights_save.dat"
@@ -23,6 +27,7 @@ var save_file_path = "user://necroknights_save.dat"
 var player: Player = null
 var spawners: Array[ZombieSpawner] = []
 var break_timer: Timer
+var game_over_screen: CanvasLayer = null
 
 # Constantes
 const BREAK_DURATION = 20.0
@@ -156,7 +161,8 @@ func start_next_wave():
 func _on_zombie_died():
 	if is_wave_active:
 		zombies_remaining -= 1
-		print("Zombie tué! Restants: " + str(zombies_remaining))
+		total_zombies_killed += 1
+		print("Zombie tué! Restants: " + str(zombies_remaining) + " | Total tués: " + str(total_zombies_killed))
 		
 		if zombies_remaining <= 0:
 			complete_current_wave()
@@ -279,3 +285,35 @@ func get_wave_description() -> String:
 		difficulty = "Difficile"
 	
 	return difficulty + " (" + str(interval) + "s/spawn)" 
+
+# Fonction appelée quand le joueur meurt
+func trigger_game_over():
+	# Arrêter le jeu
+	is_wave_active = false
+	is_on_break = false
+	
+	# Arrêter tous les spawners
+	for spawner in spawners:
+		if is_instance_valid(spawner):
+			spawner.stop_spawning()
+	
+	# Arrêter le timer de pause s'il est actif
+	if break_timer:
+		break_timer.stop()
+	
+	# Calculer le nombre de manches complètement terminées
+	var completed_waves = max(0, current_wave - 1)
+	
+	# Émettre le signal de Game Over
+	game_over.emit(total_zombies_killed, completed_waves)
+	
+	print("🔴 GAME OVER - Zombies tués: " + str(total_zombies_killed) + ", Manches terminées: " + str(completed_waves))
+
+# Obtenir les statistiques actuelles
+func get_game_stats() -> Dictionary:
+	return {
+		"zombies_killed": total_zombies_killed,
+		"waves_completed": max(0, current_wave - 1),
+		"current_wave": current_wave,
+		"max_wave_record": max_wave_completed
+	} 
