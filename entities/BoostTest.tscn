@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_boost_scene"]
+
+[ext_resource type="PackedScene" uid="uid://bx8c4xqf3ekcf" path="res://entities/BoostItem.tscn" id="1_boost"]
+
+[node name="BoostTest" type="Node2D"]
+
+[node name="AtomicBomb" parent="." instance=ExtResource("1_boost")]
+position = Vector2(-100, -100)
+boost_type = 0
+
+[node name="MedicalKit" parent="." instance=ExtResource("1_boost")]
+position = Vector2(100, -100)
+boost_type = 1
+
+[node name="Skull" parent="." instance=ExtResource("1_boost")]
+position = Vector2(-100, 100)
+boost_type = 2
+
+[node name="SpeedBoost" parent="." instance=ExtResource("1_boost")]
+position = Vector2(100, 100)
+boost_type = 3 
