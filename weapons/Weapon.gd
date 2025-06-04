@@ -31,6 +31,11 @@ func spawn_projectile(direction: Vector2):
 		get_parent().add_child(projectile)  # Ajoute le projectile à la scène
 		projectile.global_position = global_position + shoot_offset
 		projectile.direction = direction  # Applique la direction du tir
+		
+		# Passer la référence du joueur au projectile
+		var player = get_parent()
+		if player is Player and projectile.has_method("set_player_reference"):
+			projectile.set_player_reference(player)
 
 # 📌 Fonction de recharge
 func reload():

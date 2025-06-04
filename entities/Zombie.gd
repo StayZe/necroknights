@@ -28,6 +28,8 @@ var can_attack = true
 
 # Précharger la scène de pièce
 var coin_scene = preload("res://entities/Coin.tscn")
+# Précharger la scène de boost
+var boost_scene = preload("res://entities/BoostItem.tscn")
 
 func _ready():
 	health = max_health
@@ -167,6 +169,60 @@ func drop_coins():
 		
 		# Puis définir la position APRÈS l'ajout à la scène
 		coin.global_position = coin_position
+	
+	# 5% de chance de drop un boost
+	var boost_chance = randf() * 100
+	if boost_chance <= 50.0:
+		drop_boost()
+
+func drop_boost():
+	print("🎁 Un boost va être droppé !")
+	
+	# Vérifier que la scène boost existe
+	if not boost_scene:
+		print("Erreur: scène boost non trouvée")
+		return
+	
+	# Trouver le nœud parent approprié
+	var scene_root = get_tree().current_scene
+	if not scene_root:
+		print("Erreur: scene_root non trouvée")
+		return
+	
+	# Créer le boost
+	var boost = boost_scene.instantiate()
+	if not boost:
+		print("Erreur: impossible d'instancier le boost")
+		return
+	
+	# Choisir aléatoirement le type de boost (1/4 de chance pour chaque)
+	var boost_type_rand = randi() % 4
+	match boost_type_rand:
+		0:
+			boost.boost_type = BoostItem.BoostType.ATOMIC_BOMB
+			print("💥 Bombe atomique droppée !")
+		1:
+			boost.boost_type = BoostItem.BoostType.MEDICAL_KIT
+			print("🏥 Kit médical droppé !")
+		2:
+			boost.boost_type = BoostItem.BoostType.SKULL
+			print("💀 Boost de puissance droppé !")
+		3:
+			boost.boost_type = BoostItem.BoostType.SPEED_BOOST
+			print("⚡ Boost de vitesse droppé !")
+	
+	# Position aléatoire autour du zombie
+	var offset = Vector2(
+		randf_range(-30, 30),
+		randf_range(-30, 30)
+	)
+	var boost_position = global_position + offset
+	
+	# Ajouter le boost à la scène
+	scene_root.add_child(boost)
+	
+	# Définir la position après l'ajout à la scène
+	boost.global_position = boost_position
 
 func update_health_display():
 	if health_label:

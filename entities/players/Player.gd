@@ -30,6 +30,14 @@ var active_weapon_slot: int = 0  # 0 = aucune arme, 1 = slot 1, 2 = slot 2
 # Pour stocker le chemin de la scène de l'arme originale
 var current_weapon_scene_path: String = ""
 
+# 📌 Variables de boost
+var current_speed_multiplier: float = 1.0
+var speed_boost_active: bool = false
+var damage_boost_multiplier: float = 1.0
+var damage_boost_active: bool = false
+var damage_boost_timer: Timer
+var speed_boost_timer: Timer
+
 # DEBUG: Test rapide du Game Over (à supprimer après test)
 var debug_game_over = false
 
@@ -40,6 +48,9 @@ func _ready():
 	# Initialiser la santé
 	health = max_health
 	update_health_display()
+	
+	# Créer les timers pour les boosts
+	create_boost_timers()
 	
 	# S'enregistrer auprès du WaveManager
 	if get_node_or_null("/root/WaveManager"):
@@ -81,7 +92,8 @@ func _physics_process(delta):
 # 📌 Gère le déplacement et les animations
 func get_input():
 	var input_direction = Input.get_vector("left", "right", "up", "down")
-	velocity = input_direction * SPEED
+	# Appliquer le multiplicateur de vitesse
+	velocity = input_direction * SPEED * current_speed_multiplier
 
 	# Les animations sont maintenant principalement gérées par la fonction update_facing_direction
 	if anim and input_direction == Vector2.ZERO:
@@ -349,3 +361,61 @@ func die():
 		WaveManager.trigger_game_over()
 	else:
 		print("Erreur: WaveManager non trouvé pour déclencher le Game Over")
+
+# 📌 Méthodes de boost
+
+func heal_to_full():
+	health = max_health
+	update_health_display()
+	print("🏥 Vie restaurée à 100% !")
+
+func apply_damage_boost(multiplier: float, duration: float):
+	damage_boost_multiplier = multiplier
+	damage_boost_active = true
+	damage_boost_timer.wait_time = duration
+	damage_boost_timer.start()
+	print("💀 Boost de dégâts activé ! x" + str(multiplier) + " pendant " + str(duration) + " secondes")
+
+func apply_speed_boost(multiplier: float, duration: float = 0.0):
+	current_speed_multiplier = multiplier
+	speed_boost_active = true
+	
+	if duration > 0:
+		speed_boost_timer.wait_time = duration
+		# Déconnecter le signal existant avant de reconnecter pour éviter les doublons
+		if speed_boost_timer.timeout.is_connected(_on_speed_boost_timeout):
+			speed_boost_timer.timeout.disconnect(_on_speed_boost_timeout)
+		speed_boost_timer.timeout.connect(_on_speed_boost_timeout)
+		speed_boost_timer.start()
+		print("⚡ Boost de vitesse activé ! x" + str(multiplier) + " pendant " + str(duration) + " secondes")
+	else:
+		print("⚡ Boost de vitesse activé ! x" + str(multiplier) + " (permanent)")
+
+func _on_damage_boost_timeout():
+	damage_boost_multiplier = 1.0
+	damage_boost_active = false
+	print("💀 Boost de dégâts terminé, retour à la normale")
+
+func _on_speed_boost_timeout():
+	current_speed_multiplier = 1.0
+	speed_boost_active = false
+	print("⚡ Boost de vitesse terminé, retour à la vitesse normale")
+
+func get_damage_multiplier() -> float:
+	return damage_boost_multiplier
+
+func get_speed_multiplier() -> float:
+	return current_speed_multiplier
+
+func create_boost_timers():
+	# Timer pour le boost de dégâts
+	damage_boost_timer = Timer.new()
+	damage_boost_timer.wait_time = 30.0
+	damage_boost_timer.one_shot = true
+	damage_boost_timer.timeout.connect(_on_damage_boost_timeout)
+	add_child(damage_boost_timer)
+	
+	# Timer pour le boost de vitesse
+	speed_boost_timer = Timer.new()
+	speed_boost_timer.one_shot = true
+	add_child(speed_boost_timer)
