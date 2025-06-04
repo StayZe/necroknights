@@ -53,7 +53,17 @@ func _ready():
 func _physics_process(delta):
 	get_input()
 	update_facing_direction()
+	
+	# Améliorer la gestion des collisions
+	var was_on_floor = is_on_floor()
 	move_and_slide()
+	
+	# Vérifier les collisions après le mouvement
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		if collision:
+			# Debug pour voir avec quoi on collisionne
+			print("Collision détectée avec: ", collision.get_collider())
 	
 	# 📌 Gestion du changement d'arme avec les touches 1 et 2
 	if Input.is_action_just_pressed("weapon_slot_1"):
