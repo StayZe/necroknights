@@ -88,6 +88,14 @@ weapon_slot_2={
 ]
 }
 
+[layer_names]
+
+2d_physics/layer_1="Walls"
+2d_physics/layer_2="Player"
+2d_physics/layer_3="Enemies"
+2d_physics/layer_4="Pickups"
+2d_physics/layer_5="Projectiles"
+
 [rendering]
 
 environment/defaults/default_clear_color=Color(0.17108, 0.287362, 0.53659, 1)
