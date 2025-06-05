@@ -1,11 +1,11 @@
-[gd_scene load_steps=44 format=3 uid="uid://dytjcokiwbrry"]
+[gd_scene load_steps=41 format=3 uid="uid://bvw7g8naxn1ch"]
 
-[ext_resource type="Script" uid="uid://lfm6nu1gwxb5" path="res://entities/Zombie.gd" id="1_gjq5t"]
-[ext_resource type="Texture2D" uid="uid://mceolftjq0jp" path="res://sprites/zombies/zombieBasic/Zombie 4_idle.png" id="2_6mbcr"]
-[ext_resource type="Texture2D" uid="uid://b2mc144qe8xeg" path="res://sprites/zombies/zombieBasic/Zombie 4_death 4.png" id="2_l1qdh"]
-[ext_resource type="Texture2D" uid="uid://drj6mnspd2k8y" path="res://sprites/zombies/zombieBasic/Zombie 4_hit.png" id="3_pqq4r"]
-[ext_resource type="Texture2D" uid="uid://barr7expkpo77" path="res://sprites/zombies/zombieBasic/Zombie 4_knocked .png" id="4_i25m1"]
-[ext_resource type="Texture2D" uid="uid://3uvosuupf7jv" path="res://sprites/zombies/zombieBasic/Zombie 4_run.png" id="5_8olfw"]
+[ext_resource type="Script" uid="uid://jnpcxkcq3ty5" path="res://entities/ZombieHeavy.gd" id="1_gjq5t"]
+[ext_resource type="Texture2D" uid="uid://baj8tu0krx4m4" path="res://sprites/zombies/zombieHeavy/Zombie 2_Idle.png" id="2_6mbcr"]
+[ext_resource type="Texture2D" uid="uid://u377e0bcrt03" path="res://sprites/zombies/zombieHeavy/Zombie 2_Death 1 .png" id="2_l1qdh"]
+[ext_resource type="Texture2D" uid="uid://b50d78cixy77f" path="res://sprites/zombies/zombieHeavy/Zombie 2_Hit.png" id="3_pqq4r"]
+[ext_resource type="Texture2D" uid="uid://spee7kcov1qy" path="res://sprites/zombies/zombieHeavy/Zombie 2_knocked.png" id="4_i25m1"]
+[ext_resource type="Texture2D" uid="uid://2t6b2r404ca6" path="res://sprites/zombies/zombieHeavy/Zombie 2_Run.png" id="5_8olfw"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q6uwi"]
 radius = 12.0
@@ -200,120 +200,69 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle",
-"speed": 5.0
+"speed": 6.0
 }, {
 "frames": [{
-"duration": 0.5,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_3vjcm")
 }, {
-"duration": 0.5,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_s140b")
 }, {
-"duration": 0.5,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_7t0nl")
 }, {
-"duration": 0.5,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_t516e")
 }, {
-"duration": 0.5,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_t553y")
 }, {
-"duration": 0.5,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_kv3li")
 }],
 "loop": false,
 "name": &"knocked",
-"speed": 5.0
+"speed": 6.0
 }, {
 "frames": [{
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_8mkit")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_cw5iy")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_bihbe")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_j8wr1")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_k72ww")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_lkxn3")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_2aw5p")
 }, {
-"duration": 0.6,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_marbj")
 }],
 "loop": true,
 "name": &"run",
-"speed": 10.0
+"speed": 8.0
 }]
-
-[sub_resource type="Animation" id="Animation_c1jmx"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
-}
-
-[sub_resource type="Animation" id="Animation_fcl6p"]
-resource_name = "zombie_idle"
-length = 0.6
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": ["idle"]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [0, 1, 2, 3, 4, 5]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_e87v0"]
-_data = {
-&"RESET": SubResource("Animation_c1jmx"),
-&"zombie_idle": SubResource("Animation_fcl6p")
-}
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_jl6s7"]
 radius = 500.0
 
-[node name="Zombie" type="CharacterBody2D" groups=["enemy"]]
+[node name="ZombieHeavy" type="CharacterBody2D" groups=["enemy"]]
 scale = Vector2(6, 6)
 collision_layer = 3
 collision_mask = 3
 script = ExtResource("1_gjq5t")
-speed = 90.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 scale = Vector2(0.2, 0.2)
@@ -322,18 +271,16 @@ shape = SubResource("CircleShape2D_q6uwi")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(0.1, 0.1)
 sprite_frames = SubResource("SpriteFrames_hul3c")
-animation = &"death"
+animation = &"idle"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_e87v0")
-}
 
 [node name="AttackTimer" type="Timer" parent="."]
+wait_time = 1.5
 one_shot = true
 
 [node name="HitTimer" type="Timer" parent="."]
-wait_time = 0.4
+wait_time = 0.5
 one_shot = true
 
 [node name="DetectionArea" type="Area2D" parent="."]
@@ -353,7 +300,7 @@ theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 10
-text = "HP: 100"
+text = "HP: 150"
 horizontal_alignment = 1
 
 [connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]

@@ -1,5 +1,5 @@
 extends CharacterBody2D
-class_name Zombie
+class_name ZombieHeavy
 
 enum State {
 	IDLE,
@@ -9,10 +9,10 @@ enum State {
 	DEATH
 }
 
-@export var speed: float = 100.0  # Même vitesse que le joueur
-@export var max_health: float = 100.0
-@export var attack_damage: float = 15.0
-@export var attack_cooldown: float = 1.5
+@export var speed: float = 80.0  
+@export var max_health: float = 150.0
+@export var attack_damage: float = 25.0
+@export var attack_cooldown: float = 2
 
 @onready var sprite = $AnimatedSprite2D
 @onready var animation_player = $AnimationPlayer
@@ -37,11 +37,11 @@ func _ready():
 	add_to_group("enemy")  # Pour que les projectiles puissent détecter les zombies
 	
 	# Configuration des animations
-	sprite.sprite_frames.set_animation_speed("idle", 10)  # 6 frames
-	sprite.sprite_frames.set_animation_speed("run", 15)   # 8 frames
-	sprite.sprite_frames.set_animation_speed("hit", 6)    # 3 frames
-	sprite.sprite_frames.set_animation_speed("knocked", 12)  # 6 frames
-	sprite.sprite_frames.set_animation_speed("death", 10)   # 8 frames
+	sprite.sprite_frames.set_animation_speed("idle", 10)
+	sprite.sprite_frames.set_animation_speed("run", 15) 
+	sprite.sprite_frames.set_animation_speed("hit", 6)  
+	sprite.sprite_frames.set_animation_speed("knocked", 12)
+	sprite.sprite_frames.set_animation_speed("death", 10)
 	
 	# Mise à jour de l'affichage de la santé
 	update_health_display()
@@ -108,12 +108,12 @@ func change_state(new_state):
 			sprite.play("death")
 
 func take_damage(damage_amount):
-	print("Zombie prend " + str(damage_amount) + " dégâts!")
+	print("ZombieHeavy prend " + str(damage_amount) + " dégâts!")
 	health -= damage_amount
 	update_health_display()
 	
 	if health <= 0:
-		print("Zombie tué!")
+		print("ZombieHeavy tué!")
 		change_state(State.DEATH)
 		# Désactiver la collision
 		$CollisionShape2D.set_deferred("disabled", true)
@@ -128,16 +128,16 @@ func take_damage(damage_amount):
 		change_state(State.HIT)
 
 func drop_coins():
-	# Probabilités de drop: 50% pour 1 pièce, 30% pour 2 pièces, 20% pour 3 pièces
+	# Probabilités de drop: 50% pour 2 pièces, 30% pour 3 pièces, 20% pour 4 pièces (plus de coins car plus fort)
 	var random_value = randf() * 100
-	var coins_to_drop = 1
+	var coins_to_drop = 2
 	
 	if random_value <= 50:
-		coins_to_drop = 1
-	elif random_value <= 80:
 		coins_to_drop = 2
-	else:
+	elif random_value <= 80:
 		coins_to_drop = 3
+	else:
+		coins_to_drop = 4
 	
 	# Vérifier que la scène coin existe
 	if not coin_scene:
@@ -176,7 +176,7 @@ func drop_coins():
 		drop_boost()
 
 func drop_boost():
-	print("🎁 Un boost va être droppé !")
+	print("🎁 Un boost va être droppé par ZombieHeavy !")
 	
 	# Vérifier que la scène boost existe
 	if not boost_scene:
@@ -241,34 +241,28 @@ func attack():
 		# Vérifier si le joueur est une instance de la classe Player
 		if player is Player:
 			print("Le joueur est bien une instance de la classe Player")
-			print("Zombie attaque le joueur pour " + str(attack_damage) + " dégâts!")
+			print("ZombieHeavy attaque le joueur pour " + str(attack_damage) + " dégâts!")
 			player.take_damage(attack_damage)
 		# Vérifier si le joueur a la méthode take_damage
 		elif player.has_method("take_damage"):
-			print("Zombie attaque le joueur pour " + str(attack_damage) + " dégâts!")
+			print("ZombieHeavy attaque le joueur pour " + str(attack_damage) + " dégâts!")
 			player.take_damage(attack_damage)
 		else:
-			print("Le joueur n'a pas de méthode take_damage!")
-			# Commenté pour éviter le crash du jeu
-			# player.call("take_damage", attack_damage)
-
-func _on_attack_timer_timeout():
-	can_attack = true
-	if current_state == State.ATTACK:
-		change_state(State.CHASE)
-
-func _on_hit_timer_timeout():
-	if current_state == State.HIT and health > 0:
-		change_state(State.CHASE)
+			print("Erreur: Le joueur n'a pas de méthode take_damage")
 
 func _on_detection_area_body_entered(body):
 	if body.is_in_group("player"):
-		print("Joueur détecté!")
 		player = body
 		change_state(State.CHASE)
 
 func _on_detection_area_body_exited(body):
-	if body.is_in_group("player"):
-		print("Joueur hors de portée!")
+	if body == player:
 		player = null
-		change_state(State.IDLE) 
+		change_state(State.IDLE)
+
+func _on_attack_timer_timeout():
+	can_attack = true
+
+func _on_hit_timer_timeout():
+	if current_state == State.HIT and health > 0:
+		change_state(State.CHASE)

@@ -116,4 +116,4 @@ func apply_skull_boost(player):
 func apply_speed_boost(player):
 	# Appliquer le boost de vitesse au joueur avec une durée de 60 secondes
 	if player.has_method("apply_speed_boost"):
-		player.apply_speed_boost(2.0, 60.0) 
+		player.apply_speed_boost(1.5, 30.0) 

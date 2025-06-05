@@ -150,7 +150,7 @@ func start_next_wave():
 				var quota = zombies_per_spawner
 				if i < remaining_zombies:
 					quota += 1  # Donner un zombie supplémentaire aux premiers spawners
-				spawner.setup_for_wave(spawn_interval, quota)
+				spawner.setup_for_wave(spawn_interval, quota, current_wave)
 			else:
 				print("Spawner invalide détecté à l'index " + str(i))
 	

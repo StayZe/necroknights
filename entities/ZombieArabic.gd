@@ -1,5 +1,5 @@
 extends CharacterBody2D
-class_name Zombie
+class_name ZombieArabic
 
 enum State {
 	IDLE,
@@ -9,10 +9,11 @@ enum State {
 	DEATH
 }
 
-@export var speed: float = 100.0  # Même vitesse que le joueur
-@export var max_health: float = 100.0
-@export var attack_damage: float = 15.0
+@export var speed: float = 125.0 
+@export var max_health: float = 75.0
+@export var attack_damage: float = 40.0  
 @export var attack_cooldown: float = 1.5
+@export var explosion_radius: float = 80.0 
 
 @onready var sprite = $AnimatedSprite2D
 @onready var animation_player = $AnimationPlayer
@@ -25,6 +26,7 @@ var player = null
 var current_state = State.IDLE
 var health = max_health
 var can_attack = true
+var has_exploded = false
 
 # Précharger la scène de pièce
 var coin_scene = preload("res://entities/Coin.tscn")
@@ -54,8 +56,8 @@ func _process(_delta):
 	pass
 
 func _physics_process(delta):
-	if current_state == State.DEATH:
-		# Ne pas bouger si le zombie est mort
+	if current_state == State.DEATH or has_exploded:
+		# Ne pas bouger si le zombie est mort ou a explosé
 		return
 	
 	if current_state == State.HIT:
@@ -74,11 +76,11 @@ func _physics_process(delta):
 		# Orienter le sprite
 		sprite.flip_h = direction.x < 0
 		
-		# Si le zombie est proche du joueur, attaquer
-		if global_position.distance_to(player.global_position) < 30:
+		# Si le zombie est proche du joueur, exploser
+		if global_position.distance_to(player.global_position) < 40:
 			change_state(State.ATTACK)
 			if can_attack:
-				attack()
+				explode()
 	
 	move_and_slide()
 
@@ -99,21 +101,21 @@ func change_state(new_state):
 		State.ATTACK:
 			# Animation d'attaque (6 frames)
 			sprite.play("knocked")
-			# S'assurer que l'animation d'attaque se termine avant de retourner à la poursuite
+			# L'explosion se produit immédiatement
 			await sprite.animation_finished
-			if current_state == State.ATTACK and health > 0:
-				change_state(State.CHASE)
+			if not has_exploded:
+				change_state(State.DEATH)
 		State.DEATH:
 			# Animation de mort (8 frames)
 			sprite.play("death")
 
 func take_damage(damage_amount):
-	print("Zombie prend " + str(damage_amount) + " dégâts!")
+	print("ZombieArabic prend " + str(damage_amount) + " dégâts!")
 	health -= damage_amount
 	update_health_display()
 	
 	if health <= 0:
-		print("Zombie tué!")
+		print("ZombieArabic tué!")
 		change_state(State.DEATH)
 		# Désactiver la collision
 		$CollisionShape2D.set_deferred("disabled", true)
@@ -127,14 +129,70 @@ func take_damage(damage_amount):
 	else:
 		change_state(State.HIT)
 
+func explode():
+	if has_exploded:
+		return
+		
+	has_exploded = true
+	can_attack = false
+	
+	print("💥 ZombieArabic explose et inflige " + str(attack_damage) + " dégâts de zone!")
+	
+	# Trouver tous les objets dans le rayon d'explosion
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = explosion_radius
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collision_mask = 1  # Layer du joueur
+	
+	var results = space_state.intersect_shape(query)
+	
+	for result in results:
+		var body = result["collider"]
+		if body.is_in_group("player"):
+			print("Le joueur est touché par l'explosion!")
+			if body.has_method("take_damage"):
+				body.take_damage(attack_damage)
+		elif body.is_in_group("enemy") and body != self:
+			# Les autres ennemis peuvent aussi être touchés par l'explosion
+			if body.has_method("take_damage"):
+				body.take_damage(attack_damage / 2)  # Dégâts réduits sur les autres ennemis
+	
+	# Effet visuel d'explosion (vous pouvez ajouter une animation ou un sprite ici)
+	create_explosion_effect()
+	
+	# Le zombie meurt instantanément après l'explosion
+	change_state(State.DEATH)
+	$CollisionShape2D.set_deferred("disabled", true)
+	drop_coins()
+	
+	# Supprimer le zombie après l'animation
+	await sprite.animation_finished
+	queue_free()
+
+func create_explosion_effect():
+	# Créer un effet visuel temporaire pour l'explosion
+	var explosion_sprite = AnimatedSprite2D.new()
+	get_parent().add_child(explosion_sprite)
+	explosion_sprite.global_position = global_position
+	explosion_sprite.scale = Vector2(2.0, 2.0)  # Plus gros pour l'explosion
+	
+	# Vous pouvez ajouter ici une animation d'explosion si vous avez les sprites
+	# Pour l'instant, on utilise juste un effet de fondu
+	var tween = create_tween()
+	tween.tween_property(explosion_sprite, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(explosion_sprite.queue_free)
+
 func drop_coins():
-	# Probabilités de drop: 50% pour 1 pièce, 30% pour 2 pièces, 20% pour 3 pièces
+	# Probabilités de drop: 30% pour 1 pièce, 40% pour 2 pièces, 30% pour 3 pièces
 	var random_value = randf() * 100
 	var coins_to_drop = 1
 	
-	if random_value <= 50:
+	if random_value <= 30:
 		coins_to_drop = 1
-	elif random_value <= 80:
+	elif random_value <= 70:
 		coins_to_drop = 2
 	else:
 		coins_to_drop = 3
@@ -170,13 +228,13 @@ func drop_coins():
 		# Puis définir la position APRÈS l'ajout à la scène
 		coin.global_position = coin_position
 	
-	# 5% de chance de drop un boost
+	# 3% de chance de drop un boost (moins que les autres zombies car il explose)
 	var boost_chance = randf() * 100
-	if boost_chance <= 50.0:
+	if boost_chance <= 30.0:
 		drop_boost()
 
 func drop_boost():
-	print("🎁 Un boost va être droppé !")
+	print("🎁 Un boost va être droppé par ZombieArabic !")
 	
 	# Vérifier que la scène boost existe
 	if not boost_scene:
@@ -229,46 +287,22 @@ func update_health_display():
 		health_label.text = "HP: " + str(int(health))
 
 func attack():
-	can_attack = false
-	attack_timer.start()
-	if player != null:
-		# Informations de débogage pour comprendre pourquoi take_damage n'est pas trouvé
-		print("Type du joueur: ", player.get_class())
-		print("Groupes du joueur: ", player.get_groups())
-		print("Nom du nœud joueur: ", player.name)
-		print("Script du joueur: ", player.get_script())
-		
-		# Vérifier si le joueur est une instance de la classe Player
-		if player is Player:
-			print("Le joueur est bien une instance de la classe Player")
-			print("Zombie attaque le joueur pour " + str(attack_damage) + " dégâts!")
-			player.take_damage(attack_damage)
-		# Vérifier si le joueur a la méthode take_damage
-		elif player.has_method("take_damage"):
-			print("Zombie attaque le joueur pour " + str(attack_damage) + " dégâts!")
-			player.take_damage(attack_damage)
-		else:
-			print("Le joueur n'a pas de méthode take_damage!")
-			# Commenté pour éviter le crash du jeu
-			# player.call("take_damage", attack_damage)
-
-func _on_attack_timer_timeout():
-	can_attack = true
-	if current_state == State.ATTACK:
-		change_state(State.CHASE)
-
-func _on_hit_timer_timeout():
-	if current_state == State.HIT and health > 0:
-		change_state(State.CHASE)
+	# Cette fonction est remplacée par explode() pour ce zombie
+	explode()
 
 func _on_detection_area_body_entered(body):
 	if body.is_in_group("player"):
-		print("Joueur détecté!")
 		player = body
 		change_state(State.CHASE)
 
 func _on_detection_area_body_exited(body):
-	if body.is_in_group("player"):
-		print("Joueur hors de portée!")
+	if body == player:
 		player = null
-		change_state(State.IDLE) 
+		change_state(State.IDLE)
+
+func _on_attack_timer_timeout():
+	can_attack = true
+
+func _on_hit_timer_timeout():
+	if current_state == State.HIT and health > 0:
+		change_state(State.CHASE) 
