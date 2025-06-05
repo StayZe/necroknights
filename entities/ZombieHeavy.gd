@@ -26,6 +26,15 @@ var current_state = State.IDLE
 var health = max_health
 var can_attack = true
 
+# Variables pour le pathfinding amélioré
+var navigation_agent: NavigationAgent2D
+var target_position: Vector2
+var is_stuck = false
+var stuck_timer = 0.0
+var last_position: Vector2
+var obstacle_avoidance_direction: Vector2 = Vector2.ZERO
+var path_recalculation_timer = 0.0
+
 # Précharger la scène de pièce
 var coin_scene = preload("res://entities/Coin.tscn")
 # Précharger la scène de boost
@@ -35,6 +44,16 @@ func _ready():
 	health = max_health
 	attack_timer.wait_time = attack_cooldown
 	add_to_group("enemy")  # Pour que les projectiles puissent détecter les zombies
+	
+	# Configuration du NavigationAgent2D
+	navigation_agent = NavigationAgent2D.new()
+	add_child(navigation_agent)
+	navigation_agent.avoidance_enabled = true
+	navigation_agent.radius = 16.0
+	navigation_agent.neighbor_distance = 50.0
+	navigation_agent.max_neighbors = 10
+	navigation_agent.time_horizon = 1.5
+	navigation_agent.max_speed = speed
 	
 	# Configuration des animations
 	sprite.sprite_frames.set_animation_speed("idle", 10)
@@ -48,6 +67,13 @@ func _ready():
 	
 	# Définir l'état initial
 	change_state(State.IDLE)
+	
+	# Initialiser la position précédente
+	last_position = global_position
+	
+	# Configuration des layers de collision
+	collision_layer = 4  # Layer 3 (Enemies)
+	collision_mask = 1 | 2  # Layer 1 (Walls) + Layer 2 (Player)
 
 func _process(_delta):
 	# Les animations sont gérées via change_state et les fonctions de transition
@@ -67,18 +93,17 @@ func _physics_process(delta):
 		return
 	
 	if player != null and current_state == State.CHASE:
-		# Déplacer le zombie vers le joueur
-		var direction = global_position.direction_to(player.global_position)
-		velocity = direction * speed
-		
-		# Orienter le sprite
-		sprite.flip_h = direction.x < 0
+		# Système de pathfinding amélioré
+		update_pathfinding(delta)
 		
 		# Si le zombie est proche du joueur, attaquer
-		if global_position.distance_to(player.global_position) < 30:
+		if global_position.distance_to(player.global_position) < 40:
 			change_state(State.ATTACK)
 			if can_attack:
 				attack()
+	
+	# Mise à jour du z-index basé sur la position Y pour la profondeur
+	update_depth_sorting()
 	
 	move_and_slide()
 
@@ -266,3 +291,289 @@ func _on_attack_timer_timeout():
 func _on_hit_timer_timeout():
 	if current_state == State.HIT and health > 0:
 		change_state(State.CHASE)
+
+func update_pathfinding(delta):
+	# Tenter d'utiliser le NavigationAgent si disponible
+	var has_navigation_map = NavigationServer2D.map_get_agents(get_world_2d().navigation_map).size() > 0
+	
+	if has_navigation_map:
+		# Utiliser le système de navigation standard
+		path_recalculation_timer += delta
+		if path_recalculation_timer > 0.5 or global_position.distance_to(target_position) > 100:
+			target_position = player.global_position
+			navigation_agent.target_position = target_position
+			path_recalculation_timer = 0.0
+		
+		var next_path_position = navigation_agent.get_next_path_position()
+		var direction = global_position.direction_to(next_path_position)
+		
+		# Si le zombie est bloqué, utiliser l'évitement d'obstacles
+		detect_if_stuck(delta)
+		if is_stuck:
+			direction = get_obstacle_avoidance_direction()
+		
+		velocity = direction * speed
+	else:
+		# Utiliser un système d'évitement d'obstacles personnalisé
+		use_custom_pathfinding(delta)
+	
+	# Orienter le sprite
+	if velocity.length() > 0:
+		sprite.flip_h = velocity.x < 0
+
+func use_custom_pathfinding(delta):
+	# Détecter les blocages
+	detect_if_stuck(delta)
+	
+	# Direction directe vers le joueur
+	var direct_direction = global_position.direction_to(player.global_position)
+	
+	# Méthode simplifiée : tester seulement si il y a un obstacle direct
+	var space_state = get_world_2d().direct_space_state
+	var direct_query = PhysicsRayQueryParameters2D.create(
+		global_position + Vector2(0, -8),  # Partir légèrement au-dessus du centre
+		player.global_position + Vector2(0, -8),  # Vers le centre du joueur
+		1  # Seulement layer des murs
+	)
+	direct_query.exclude = [self]
+	var direct_result = space_state.intersect_ray(direct_query)
+	
+	var final_direction = direct_direction
+	
+	# Si il y a un obstacle OU si le zombie est bloqué depuis longtemps
+	if not direct_result.is_empty() or is_stuck:
+		# Utiliser une méthode plus simple : tourner autour de l'obstacle
+		final_direction = get_simple_avoidance_direction()
+	
+	# Éviter les regroupements
+	var nearby_zombies = get_nearby_zombies_count()
+	if nearby_zombies > 1:
+		# Ajouter une petite déviation pour éviter les embouteillages
+		var spread_angle = randf_range(-PI/4, PI/4)  # ±45 degrés
+		var spread_direction = Vector2(cos(direct_direction.angle() + spread_angle), sin(direct_direction.angle() + spread_angle))
+		final_direction = final_direction.lerp(spread_direction, 0.3)
+	
+	velocity = final_direction * speed
+
+func get_simple_avoidance_direction() -> Vector2:
+	# Méthode simplifiée : essayer seulement quelques directions principales
+	var player_direction = global_position.direction_to(player.global_position)
+	var test_directions = [
+		player_direction,  # Direction directe
+		Vector2(-player_direction.y, player_direction.x),  # 90° à gauche
+		Vector2(player_direction.y, -player_direction.x),  # 90° à droite
+		player_direction.rotated(PI/4),    # 45° rotation
+		player_direction.rotated(-PI/4),   # -45° rotation
+		player_direction.rotated(3*PI/4),  # 135° rotation
+		player_direction.rotated(-3*PI/4), # -135° rotation
+	]
+	
+	var space_state = get_world_2d().direct_space_state
+	
+	for direction in test_directions:
+		var test_query = PhysicsRayQueryParameters2D.create(
+			global_position,
+			global_position + direction * 50.0,
+			1  # Seulement les murs
+		)
+		test_query.exclude = [self]
+		var result = space_state.intersect_ray(test_query)
+		
+		if result.is_empty():
+			return direction
+	
+	# Si aucune direction n'est libre, reculer
+	return -player_direction * 0.5
+
+func get_nearby_zombies_count() -> int:
+	# Version simplifiée pour compter les zombies proches
+	var nearby_count = 0
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 25.0
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collision_mask = 4  # Layer des ennemis
+	query.exclude = [self]
+	
+	var results = space_state.intersect_shape(query)
+	return results.size()
+
+func detect_if_stuck(delta):
+	# Vérifier si le zombie bouge très peu
+	var distance_moved = global_position.distance_to(last_position)
+	
+	if distance_moved < 3.0:  # Seuil réduit
+		stuck_timer += delta
+		if stuck_timer > 0.8:  # Temps réduit avant de considérer comme bloqué
+			is_stuck = true
+	else:
+		stuck_timer = 0.0
+		is_stuck = false
+		
+	last_position = global_position
+
+func get_obstacle_avoidance_direction():
+	# Tester plusieurs directions pour éviter les obstacles
+	var test_directions = [
+		Vector2.UP,
+		Vector2.DOWN,
+		Vector2.LEFT,
+		Vector2.RIGHT,
+		Vector2.UP + Vector2.RIGHT,
+		Vector2.UP + Vector2.LEFT,
+		Vector2.DOWN + Vector2.RIGHT,
+		Vector2.DOWN + Vector2.LEFT
+	]
+	
+	var space_state = get_world_2d().direct_space_state
+	var best_direction = Vector2.ZERO
+	var best_score = -1.0
+	
+	for direction in test_directions:
+		var test_position = global_position + direction * 50.0
+		
+		# Créer un rayon pour tester cette direction
+		var query = PhysicsRayQueryParameters2D.create(
+			global_position,
+			test_position,
+			1  # Layer des murs
+		)
+		
+		var result = space_state.intersect_ray(query)
+		
+		# Calculer un score pour cette direction
+		var score = 0.0
+		if result.is_empty():
+			# Pas d'obstacle, c'est bien
+			score += 2.0
+		
+		# Favoriser les directions qui nous rapprochent du joueur
+		var player_direction = global_position.direction_to(player.global_position)
+		score += direction.dot(player_direction)
+		
+		if score > best_score:
+			best_score = score
+			best_direction = direction
+	
+	return best_direction
+
+func get_advanced_obstacle_avoidance_direction():
+	# Directions à tester (plus de directions pour un meilleur évitement)
+	var test_angles = []
+	for i in range(16):  # 16 directions autour du zombie
+		var angle = (i * PI * 2) / 16
+		test_angles.append(angle)
+	
+	var space_state = get_world_2d().direct_space_state
+	var best_direction = Vector2.ZERO
+	var best_score = -999.0
+	
+	for angle in test_angles:
+		var direction = Vector2(cos(angle), sin(angle))
+		var test_position = global_position + direction * 80.0
+		
+		# Créer un rayon pour tester cette direction avec un masque de collision approprié
+		var query = PhysicsRayQueryParameters2D.create(
+			global_position,
+			test_position,
+			1 | 4  # Layer des murs (1) + layer des autres ennemis (4) pour éviter les collisions entre zombies
+		)
+		
+		var result = space_state.intersect_ray(query)
+		
+		# Calculer un score pour cette direction
+		var score = 0.0
+		
+		# Bonus si pas d'obstacle
+		if result.is_empty():
+			score += 10.0
+		else:
+			# Pénalité basée sur la distance de l'obstacle
+			var obstacle_distance = global_position.distance_to(result.position)
+			score += obstacle_distance / 20.0  # Plus l'obstacle est loin, mieux c'est
+			
+			# Pénalité supplémentaire si c'est un mur solide
+			var collider = result.get("collider")
+			if collider and collider.collision_layer & 1:  # Layer des murs
+				score -= 5.0
+		
+		# Bonus pour se rapprocher du joueur
+		var player_direction = global_position.direction_to(player.global_position)
+		var alignment = direction.dot(player_direction)
+		score += alignment * 5.0
+		
+		# Éviter de revenir en arrière
+		if velocity.length() > 0:
+			var current_direction = velocity.normalized()
+			var momentum_bonus = direction.dot(current_direction)
+			score += momentum_bonus * 2.0
+		
+		# Bonus pour éviter les autres zombies
+		var nearby_zombies = check_for_nearby_zombies(global_position + direction * 40.0)
+		if nearby_zombies == 0:
+			score += 3.0
+		else:
+			score -= nearby_zombies * 2.0
+		
+		if score > best_score:
+			best_score = score
+			best_direction = direction
+	
+	return best_direction
+
+func check_for_nearby_zombies(position: Vector2) -> int:
+	# Vérifier s'il y a d'autres zombies proches pour éviter les regroupements
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 30.0
+	query.shape = shape
+	query.transform = Transform2D(0, position)
+	query.collision_mask = 4  # Layer des ennemis
+	query.exclude = [self]  # Exclure ce zombie
+	
+	var results = space_state.intersect_shape(query)
+	return results.size()
+
+func get_wall_following_direction():
+	# Technique de "wall following" - suivre le mur pour le contourner
+	var space_state = get_world_2d().direct_space_state
+	var player_direction = global_position.direction_to(player.global_position)
+	
+	# Tester les directions perpendiculaires à gauche et à droite
+	var perpendicular_left = Vector2(-player_direction.y, player_direction.x)
+	var perpendicular_right = Vector2(player_direction.y, -player_direction.x)
+	
+	# Tester quelle direction perpendiculaire est libre
+	var left_query = PhysicsRayQueryParameters2D.create(
+		global_position,
+		global_position + perpendicular_left * 60.0,
+		1
+	)
+	var right_query = PhysicsRayQueryParameters2D.create(
+		global_position,
+		global_position + perpendicular_right * 60.0,
+		1
+	)
+	
+	var left_result = space_state.intersect_ray(left_query)
+	var right_result = space_state.intersect_ray(right_query)
+	
+	# Choisir la direction la plus libre
+	if left_result.is_empty() and right_result.is_empty():
+		# Les deux sont libres, choisir aléatoirement
+		return perpendicular_left if randf() > 0.5 else perpendicular_right
+	elif left_result.is_empty():
+		return perpendicular_left
+	elif right_result.is_empty():
+		return perpendicular_right
+	else:
+		# Aucune direction perpendiculaire libre, reculer légèrement
+		return -player_direction * 0.5
+
+func update_depth_sorting():
+	# Plus le zombie est en bas de l'écran, plus il doit être rendu devant
+	# Utiliser la position Y pour déterminer l'ordre de rendu
+	z_index = int(global_position.y / 10)  # Diviser par 10 pour éviter des valeurs trop grandes

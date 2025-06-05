@@ -105,7 +105,45 @@ func spawn_zombie():
 		if zombie_scene_to_spawn:
 			var zombie = zombie_scene_to_spawn.instantiate()
 			get_parent().add_child(zombie)
-			zombie.global_position = global_position
+			
+			# Positionnement amélioré pour éviter les spawn sur les toits
+			var spawn_position = global_position
+			
+			# Si on a une référence au joueur, s'assurer de spawner à la même hauteur
+			if player:
+				spawn_position.y = player.global_position.y
+				# Ajouter une variation aléatoire autour du spawner mais à la bonne hauteur
+				var random_offset = Vector2(
+					randf_range(-50, 50),
+					randf_range(-20, 20)  # Petite variation verticale seulement
+				)
+				spawn_position += random_offset
+			
+			zombie.global_position = spawn_position
+			
+			# S'assurer que le zombie a les mêmes propriétés de collision que le joueur
+			if zombie is CharacterBody2D:
+				# Configurer les layers de collision comme le joueur
+				zombie.collision_layer = 4  # Layer 3 (Enemies)
+				zombie.collision_mask = 1 | 2  # Layer 1 (Walls) + Layer 2 (Player)
+				
+				# Ajuster le z_index pour que les zombies apparaissent au bon niveau
+				zombie.z_index = 1  # Au-dessus de la map mais sous certains objets de décoration
+				
+				# Position de spawn simplifiée - juste éviter le spawning direct dans les murs
+				var space_state = zombie.get_world_2d().direct_space_state
+				var spawn_test_query = PhysicsRayQueryParameters2D.create(
+					spawn_position + Vector2(0, -16),
+					spawn_position + Vector2(0, 16),
+					1  # Seulement layer des murs
+				)
+				
+				var wall_check = space_state.intersect_ray(spawn_test_query)
+				
+				# Si on spawn dans un mur, décaler légèrement
+				if not wall_check.is_empty():
+					spawn_position += Vector2(randf_range(-40, 40), randf_range(-40, 40))
+					zombie.global_position = spawn_position
 			
 			spawned_zombies += 1
 			zombies_spawned_this_wave += 1
@@ -124,7 +162,7 @@ func spawn_zombie():
 			elif zombie_scene_to_spawn == zombie_arabic_scene:
 				zombie_type = "Arabic"
 			
-			print("Zombie " + zombie_type + " spawné! (" + str(zombies_spawned_this_wave) + "/" + str(zombies_quota_for_wave) + " pour la manche " + str(current_wave_number) + ")")
+			print("Zombie " + zombie_type + " spawné à " + str(spawn_position) + "! (" + str(zombies_spawned_this_wave) + "/" + str(zombies_quota_for_wave) + " pour la manche " + str(current_wave_number) + ")")
 
 func _on_zombie_died():
 	spawned_zombies -= 1
