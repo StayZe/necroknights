@@ -1,5 +1,5 @@
 extends CharacterBody2D
-class_name Zombie
+class_name ZombieArabic
 
 enum State {
 	IDLE,
@@ -9,10 +9,11 @@ enum State {
 	DEATH
 }
 
-@export var speed: float = 100.0  # Même vitesse que le joueur
-@export var max_health: float = 100.0
-@export var attack_damage: float = 15.0
+@export var speed: float = 125.0 
+@export var max_health: float = 75.0
+@export var attack_damage: float = 40.0  
 @export var attack_cooldown: float = 1.5
+@export var explosion_radius: float = 80.0 
 
 @onready var sprite = $AnimatedSprite2D
 @onready var animation_player = $AnimationPlayer
@@ -25,6 +26,7 @@ var player = null
 var current_state = State.IDLE
 var health = max_health
 var can_attack = true
+var has_exploded = false
 
 # Variables pour le pathfinding amélioré
 var navigation_agent: NavigationAgent2D
@@ -45,7 +47,7 @@ func _ready():
 	attack_timer.wait_time = attack_cooldown
 	add_to_group("enemy")  # Pour que les projectiles puissent détecter les zombies
 	
-	# Configuration du NavigationAgent2D (optionnel si NavigationRegion2D existe)
+	# Configuration du NavigationAgent2D
 	navigation_agent = NavigationAgent2D.new()
 	add_child(navigation_agent)
 	navigation_agent.avoidance_enabled = true
@@ -80,8 +82,8 @@ func _process(_delta):
 	pass
 
 func _physics_process(delta):
-	if current_state == State.DEATH:
-		# Ne pas bouger si le zombie est mort
+	if current_state == State.DEATH or has_exploded:
+		# Ne pas bouger si le zombie est mort ou a explosé
 		return
 	
 	if current_state == State.HIT:
@@ -96,11 +98,11 @@ func _physics_process(delta):
 		# Système de pathfinding amélioré
 		update_pathfinding(delta)
 		
-		# Si le zombie est proche du joueur, attaquer
-		if global_position.distance_to(player.global_position) < 30:
+		# Si le zombie est proche du joueur, exploser
+		if global_position.distance_to(player.global_position) < 40:
 			change_state(State.ATTACK)
 			if can_attack:
-				attack()
+				explode()
 	
 	# Mise à jour du z-index basé sur la position Y pour la profondeur
 	update_depth_sorting()
@@ -124,21 +126,21 @@ func change_state(new_state):
 		State.ATTACK:
 			# Animation d'attaque (6 frames)
 			sprite.play("knocked")
-			# S'assurer que l'animation d'attaque se termine avant de retourner à la poursuite
+			# L'explosion se produit immédiatement
 			await sprite.animation_finished
-			if current_state == State.ATTACK and health > 0:
-				change_state(State.CHASE)
+			if not has_exploded:
+				change_state(State.DEATH)
 		State.DEATH:
 			# Animation de mort (8 frames)
 			sprite.play("death")
 
 func take_damage(damage_amount):
-	print("Zombie prend " + str(damage_amount) + " dégâts!")
+	print("ZombieArabic prend " + str(damage_amount) + " dégâts!")
 	health -= damage_amount
 	update_health_display()
 	
 	if health <= 0:
-		print("Zombie tué!")
+		print("ZombieArabic tué!")
 		change_state(State.DEATH)
 		# Désactiver la collision
 		$CollisionShape2D.set_deferred("disabled", true)
@@ -152,14 +154,70 @@ func take_damage(damage_amount):
 	else:
 		change_state(State.HIT)
 
+func explode():
+	if has_exploded:
+		return
+		
+	has_exploded = true
+	can_attack = false
+	
+	print("💥 ZombieArabic explose et inflige " + str(attack_damage) + " dégâts de zone!")
+	
+	# Trouver tous les objets dans le rayon d'explosion
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = explosion_radius
+	query.shape = shape
+	query.transform = Transform2D(0, global_position)
+	query.collision_mask = 1  # Layer du joueur
+	
+	var results = space_state.intersect_shape(query)
+	
+	for result in results:
+		var body = result["collider"]
+		if body.is_in_group("player"):
+			print("Le joueur est touché par l'explosion!")
+			if body.has_method("take_damage"):
+				body.take_damage(attack_damage)
+		elif body.is_in_group("enemy") and body != self:
+			# Les autres ennemis peuvent aussi être touchés par l'explosion
+			if body.has_method("take_damage"):
+				body.take_damage(attack_damage / 2)  # Dégâts réduits sur les autres ennemis
+	
+	# Effet visuel d'explosion (vous pouvez ajouter une animation ou un sprite ici)
+	create_explosion_effect()
+	
+	# Le zombie meurt instantanément après l'explosion
+	change_state(State.DEATH)
+	$CollisionShape2D.set_deferred("disabled", true)
+	drop_coins()
+	
+	# Supprimer le zombie après l'animation
+	await sprite.animation_finished
+	queue_free()
+
+func create_explosion_effect():
+	# Créer un effet visuel temporaire pour l'explosion
+	var explosion_sprite = AnimatedSprite2D.new()
+	get_parent().add_child(explosion_sprite)
+	explosion_sprite.global_position = global_position
+	explosion_sprite.scale = Vector2(2.0, 2.0)  # Plus gros pour l'explosion
+	
+	# Vous pouvez ajouter ici une animation d'explosion si vous avez les sprites
+	# Pour l'instant, on utilise juste un effet de fondu
+	var tween = create_tween()
+	tween.tween_property(explosion_sprite, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(explosion_sprite.queue_free)
+
 func drop_coins():
-	# Probabilités de drop: 50% pour 1 pièce, 30% pour 2 pièces, 20% pour 3 pièces
+	# Probabilités de drop: 30% pour 1 pièce, 40% pour 2 pièces, 30% pour 3 pièces
 	var random_value = randf() * 100
 	var coins_to_drop = 1
 	
-	if random_value <= 50:
+	if random_value <= 30:
 		coins_to_drop = 1
-	elif random_value <= 80:
+	elif random_value <= 70:
 		coins_to_drop = 2
 	else:
 		coins_to_drop = 3
@@ -195,13 +253,13 @@ func drop_coins():
 		# Puis définir la position APRÈS l'ajout à la scène
 		coin.global_position = coin_position
 	
-	# 5% de chance de drop un boost
+	# 3% de chance de drop un boost (moins que les autres zombies car il explose)
 	var boost_chance = randf() * 100
-	if boost_chance <= 50.0:
+	if boost_chance <= 30.0:
 		drop_boost()
 
 func drop_boost():
-	print("🎁 Un boost va être droppé !")
+	print("🎁 Un boost va être droppé par ZombieArabic !")
 	
 	# Vérifier que la scène boost existe
 	if not boost_scene:
@@ -254,49 +312,25 @@ func update_health_display():
 		health_label.text = "HP: " + str(int(health))
 
 func attack():
-	can_attack = false
-	attack_timer.start()
-	if player != null:
-		# Informations de débogage pour comprendre pourquoi take_damage n'est pas trouvé
-		print("Type du joueur: ", player.get_class())
-		print("Groupes du joueur: ", player.get_groups())
-		print("Nom du nœud joueur: ", player.name)
-		print("Script du joueur: ", player.get_script())
-		
-		# Vérifier si le joueur est une instance de la classe Player
-		if player is Player:
-			print("Le joueur est bien une instance de la classe Player")
-			print("Zombie attaque le joueur pour " + str(attack_damage) + " dégâts!")
-			player.take_damage(attack_damage)
-		# Vérifier si le joueur a la méthode take_damage
-		elif player.has_method("take_damage"):
-			print("Zombie attaque le joueur pour " + str(attack_damage) + " dégâts!")
-			player.take_damage(attack_damage)
-		else:
-			print("Le joueur n'a pas de méthode take_damage!")
-			# Commenté pour éviter le crash du jeu
-			# player.call("take_damage", attack_damage)
-
-func _on_attack_timer_timeout():
-	can_attack = true
-	if current_state == State.ATTACK:
-		change_state(State.CHASE)
-
-func _on_hit_timer_timeout():
-	if current_state == State.HIT and health > 0:
-		change_state(State.CHASE)
+	# Cette fonction est remplacée par explode() pour ce zombie
+	explode()
 
 func _on_detection_area_body_entered(body):
 	if body.is_in_group("player"):
-		print("Joueur détecté!")
 		player = body
 		change_state(State.CHASE)
 
 func _on_detection_area_body_exited(body):
-	if body.is_in_group("player"):
-		print("Joueur hors de portée!")
+	if body == player:
 		player = null
 		change_state(State.IDLE)
+
+func _on_attack_timer_timeout():
+	can_attack = true
+
+func _on_hit_timer_timeout():
+	if current_state == State.HIT and health > 0:
+		change_state(State.CHASE) 
 
 func update_pathfinding(delta):
 	# Tenter d'utiliser le NavigationAgent si disponible
@@ -326,65 +360,6 @@ func update_pathfinding(delta):
 	# Orienter le sprite
 	if velocity.length() > 0:
 		sprite.flip_h = velocity.x < 0
-
-func detect_if_stuck(delta):
-	# Vérifier si le zombie bouge très peu
-	var distance_moved = global_position.distance_to(last_position)
-	
-	if distance_moved < 3.0:  # Seuil réduit
-		stuck_timer += delta
-		if stuck_timer > 0.8:  # Temps réduit avant de considérer comme bloqué
-			is_stuck = true
-	else:
-		stuck_timer = 0.0
-		is_stuck = false
-		
-	last_position = global_position
-
-func get_obstacle_avoidance_direction():
-	# Tester plusieurs directions pour éviter les obstacles
-	var test_directions = [
-		Vector2.UP,
-		Vector2.DOWN,
-		Vector2.LEFT,
-		Vector2.RIGHT,
-		Vector2.UP + Vector2.RIGHT,
-		Vector2.UP + Vector2.LEFT,
-		Vector2.DOWN + Vector2.RIGHT,
-		Vector2.DOWN + Vector2.LEFT
-	]
-	
-	var space_state = get_world_2d().direct_space_state
-	var best_direction = Vector2.ZERO
-	var best_score = -1.0
-	
-	for direction in test_directions:
-		var test_position = global_position + direction * 50.0
-		
-		# Créer un rayon pour tester cette direction
-		var query = PhysicsRayQueryParameters2D.create(
-			global_position,
-			test_position,
-			1  # Layer des murs
-		)
-		
-		var result = space_state.intersect_ray(query)
-		
-		# Calculer un score pour cette direction
-		var score = 0.0
-		if result.is_empty():
-			# Pas d'obstacle, c'est bien
-			score += 2.0
-		
-		# Favoriser les directions qui nous rapprochent du joueur
-		var player_direction = global_position.direction_to(player.global_position)
-		score += direction.dot(player_direction)
-		
-		if score > best_score:
-			best_score = score
-			best_direction = direction
-	
-	return best_direction
 
 func use_custom_pathfinding(delta):
 	# Détecter les blocages
@@ -465,63 +440,58 @@ func get_nearby_zombies_count() -> int:
 	var results = space_state.intersect_shape(query)
 	return results.size()
 
-func get_advanced_obstacle_avoidance_direction():
-	# Directions à tester (plus de directions pour un meilleur évitement)
-	var test_angles = []
-	for i in range(16):  # 16 directions autour du zombie
-		var angle = (i * PI * 2) / 16
-		test_angles.append(angle)
+func detect_if_stuck(delta):
+	# Vérifier si le zombie bouge très peu
+	var distance_moved = global_position.distance_to(last_position)
+	
+	if distance_moved < 3.0:  # Seuil réduit
+		stuck_timer += delta
+		if stuck_timer > 0.8:  # Temps réduit avant de considérer comme bloqué
+			is_stuck = true
+	else:
+		stuck_timer = 0.0
+		is_stuck = false
+		
+	last_position = global_position
+
+func get_obstacle_avoidance_direction():
+	# Tester plusieurs directions pour éviter les obstacles
+	var test_directions = [
+		Vector2.UP,
+		Vector2.DOWN,
+		Vector2.LEFT,
+		Vector2.RIGHT,
+		Vector2.UP + Vector2.RIGHT,
+		Vector2.UP + Vector2.LEFT,
+		Vector2.DOWN + Vector2.RIGHT,
+		Vector2.DOWN + Vector2.LEFT
+	]
 	
 	var space_state = get_world_2d().direct_space_state
 	var best_direction = Vector2.ZERO
-	var best_score = -999.0
+	var best_score = -1.0
 	
-	for angle in test_angles:
-		var direction = Vector2(cos(angle), sin(angle))
-		var test_position = global_position + direction * 80.0
+	for direction in test_directions:
+		var test_position = global_position + direction * 50.0
 		
-		# Créer un rayon pour tester cette direction avec un masque de collision approprié
+		# Créer un rayon pour tester cette direction
 		var query = PhysicsRayQueryParameters2D.create(
 			global_position,
 			test_position,
-			1 | 4  # Layer des murs (1) + layer des autres ennemis (4) pour éviter les collisions entre zombies
+			1  # Layer des murs
 		)
 		
 		var result = space_state.intersect_ray(query)
 		
 		# Calculer un score pour cette direction
 		var score = 0.0
-		
-		# Bonus si pas d'obstacle
 		if result.is_empty():
-			score += 10.0
-		else:
-			# Pénalité basée sur la distance de l'obstacle
-			var obstacle_distance = global_position.distance_to(result.position)
-			score += obstacle_distance / 20.0  # Plus l'obstacle est loin, mieux c'est
-			
-			# Pénalité supplémentaire si c'est un mur solide
-			var collider = result.get("collider")
-			if collider and collider.collision_layer & 1:  # Layer des murs
-				score -= 5.0
+			# Pas d'obstacle, c'est bien
+			score += 2.0
 		
-		# Bonus pour se rapprocher du joueur
+		# Favoriser les directions qui nous rapprochent du joueur
 		var player_direction = global_position.direction_to(player.global_position)
-		var alignment = direction.dot(player_direction)
-		score += alignment * 5.0
-		
-		# Éviter de revenir en arrière
-		if velocity.length() > 0:
-			var current_direction = velocity.normalized()
-			var momentum_bonus = direction.dot(current_direction)
-			score += momentum_bonus * 2.0
-		
-		# Bonus pour éviter les autres zombies
-		var nearby_zombies = check_for_nearby_zombies(global_position + direction * 40.0)
-		if nearby_zombies == 0:
-			score += 3.0
-		else:
-			score -= nearby_zombies * 2.0
+		score += direction.dot(player_direction)
 		
 		if score > best_score:
 			best_score = score
@@ -529,57 +499,7 @@ func get_advanced_obstacle_avoidance_direction():
 	
 	return best_direction
 
-func check_for_nearby_zombies(position: Vector2) -> int:
-	# Vérifier s'il y a d'autres zombies proches pour éviter les regroupements
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsShapeQueryParameters2D.new()
-	var shape = CircleShape2D.new()
-	shape.radius = 30.0
-	query.shape = shape
-	query.transform = Transform2D(0, position)
-	query.collision_mask = 4  # Layer des ennemis
-	query.exclude = [self]  # Exclure ce zombie
-	
-	var results = space_state.intersect_shape(query)
-	return results.size()
-
-func get_wall_following_direction():
-	# Technique de "wall following" - suivre le mur pour le contourner
-	var space_state = get_world_2d().direct_space_state
-	var player_direction = global_position.direction_to(player.global_position)
-	
-	# Tester les directions perpendiculaires à gauche et à droite
-	var perpendicular_left = Vector2(-player_direction.y, player_direction.x)
-	var perpendicular_right = Vector2(player_direction.y, -player_direction.x)
-	
-	# Tester quelle direction perpendiculaire est libre
-	var left_query = PhysicsRayQueryParameters2D.create(
-		global_position,
-		global_position + perpendicular_left * 60.0,
-		1
-	)
-	var right_query = PhysicsRayQueryParameters2D.create(
-		global_position,
-		global_position + perpendicular_right * 60.0,
-		1
-	)
-	
-	var left_result = space_state.intersect_ray(left_query)
-	var right_result = space_state.intersect_ray(right_query)
-	
-	# Choisir la direction la plus libre
-	if left_result.is_empty() and right_result.is_empty():
-		# Les deux sont libres, choisir aléatoirement
-		return perpendicular_left if randf() > 0.5 else perpendicular_right
-	elif left_result.is_empty():
-		return perpendicular_left
-	elif right_result.is_empty():
-		return perpendicular_right
-	else:
-		# Aucune direction perpendiculaire libre, reculer légèrement
-		return -player_direction * 0.5 
-
 func update_depth_sorting():
 	# Plus le zombie est en bas de l'écran, plus il doit être rendu devant
 	# Utiliser la position Y pour déterminer l'ordre de rendu
-	z_index = int(global_position.y / 10)  # Diviser par 10 pour éviter des valeurs trop grandes
+	z_index = int(global_position.y / 10)  # Diviser par 10 pour éviter des valeurs trop grandes 
