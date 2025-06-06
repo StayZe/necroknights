@@ -18642,5 +18642,7 @@ position = Vector2(531, 396)
 [node name="WaveUI" parent="." instance=ExtResource("12_0t07s")]
 
 [node name="PauseMenu" parent="." instance=ExtResource("14_ooc2g")]
+visible = false
 
 [node name="GameOverScreen" parent="." instance=ExtResource("14_2wwcf")]
+visible = false
