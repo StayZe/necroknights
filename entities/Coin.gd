@@ -4,6 +4,7 @@ class_name Coin
 @onready var sprite = $Sprite2D
 @onready var collection_area = $CollisionShape2D
 @onready var animation_player = $AnimationPlayer
+@onready var coin_sound = $AudioStreamPlayer2D
 
 var float_offset = 0.0
 var float_speed = 3.0
@@ -21,6 +22,11 @@ func _ready():
 	# S'assurer que la zone de collision est activée
 	monitoring = true
 	monitorable = true
+	
+	# Configurer le son de récupération
+	if coin_sound:
+		coin_sound.stream = preload("res://songs/coin-song.mp3")
+		coin_sound.volume_db = -10  # Ajuster le volume si nécessaire
 	
 	# Démarrer l'animation de flottaison
 	start_floating_animation()
@@ -49,6 +55,10 @@ func collect_coin():
 		return
 		
 	collected = true
+	
+	# Jouer le son de récupération
+	if coin_sound:
+		coin_sound.play()
 	
 	# Informer le GameManager que la pièce a été récupérée
 	if GameManager and GameManager.has_method("add_coins"):

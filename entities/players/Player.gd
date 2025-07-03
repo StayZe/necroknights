@@ -45,6 +45,9 @@ func _ready():
 	# Ajouter le joueur au groupe pour la détection
 	add_to_group("player")
 	
+	# Appliquer le skin sélectionné
+	apply_selected_skin()
+	
 	# Initialiser la santé
 	health = max_health
 	update_health_display()
@@ -59,7 +62,7 @@ func _ready():
 	if weapon:
 		current_weapon = get_node(weapon)
 	
-	print("Joueur initialisé - Santé: " + str(health))
+	print("Joueur initialisé - Santé: " + str(health) + " - Skin: " + str(PlayerSettings.selected_skin))
 
 func _physics_process(delta):
 	get_input()
@@ -419,3 +422,14 @@ func create_boost_timers():
 	speed_boost_timer = Timer.new()
 	speed_boost_timer.one_shot = true
 	add_child(speed_boost_timer)
+
+# 📌 Applique le skin sélectionné au sprite du joueur
+func apply_selected_skin():
+	if PlayerSettings and sprite:
+		var selected_sprite_path = PlayerSettings.get_selected_sprite_path()
+		var texture = load(selected_sprite_path)
+		if texture:
+			sprite.texture = texture
+			print("Skin appliqué: " + selected_sprite_path)
+		else:
+			print("Erreur: Impossible de charger le sprite: " + selected_sprite_path)
