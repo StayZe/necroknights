@@ -29,6 +29,9 @@ var spawners: Array[ZombieSpawner] = []
 var break_timer: Timer
 var game_over_screen: CanvasLayer = null
 
+# Son de début de manche
+var wave_start_sound: AudioStreamPlayer
+
 # Constantes
 const BREAK_DURATION = 20.0
 const STARTING_ZOMBIES = 10
@@ -40,6 +43,12 @@ func _ready():
 	break_timer.wait_time = 1.0  # Update chaque seconde
 	break_timer.timeout.connect(_on_break_timer_update)
 	add_child(break_timer)
+	
+	# Créer et configurer le son de début de manche
+	wave_start_sound = AudioStreamPlayer.new()
+	add_child(wave_start_sound)
+	wave_start_sound.stream = preload("res://songs/starting-round-zombie-sound.wav")
+	wave_start_sound.volume_db = -8  # Ajuster le volume si nécessaire
 	
 	# Charger le record
 	load_save_data()
@@ -129,6 +138,10 @@ func start_next_wave():
 		return
 	
 	current_wave += 1
+	
+	# Jouer le son de début de manche
+	if wave_start_sound:
+		wave_start_sound.play()
 	
 	# Calculer les paramètres de la manche
 	total_zombies_in_wave = get_zombies_for_wave(current_wave)

@@ -15,6 +15,10 @@ var health: float = max_health
 var is_invulnerable: bool = false
 var invulnerability_time: float = 0.5  # Temps d'invulnérabilité après avoir pris des dégâts
 
+# 📌 Son de dégâts
+var hurt_sound: AudioStreamPlayer2D
+var hurt_sounds: Array[AudioStream] = []
+
 # 📌 Gestion des armes
 @export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
 var current_weapon: Weapon = null  # Référence à l'arme actuelle
@@ -54,6 +58,9 @@ func _ready():
 	
 	# Créer les timers pour les boosts
 	create_boost_timers()
+	
+	# Configurer les sons de dégâts
+	setup_hurt_sounds()
 	
 	# S'enregistrer auprès du WaveManager
 	if get_node_or_null("/root/WaveManager"):
@@ -339,6 +346,9 @@ func take_damage(damage_amount):
 	health -= damage_amount
 	update_health_display()
 	
+	# Jouer un son de dégâts aléatoire
+	play_random_hurt_sound()
+	
 	# Animation de dégâts
 	sprite.modulate = Color(1, 0.3, 0.3, 1)  # Teinte rouge
 	
@@ -433,3 +443,34 @@ func apply_selected_skin():
 			print("Skin appliqué: " + selected_sprite_path)
 		else:
 			print("Erreur: Impossible de charger le sprite: " + selected_sprite_path)
+
+func setup_hurt_sounds():
+	# Créer l'AudioStreamPlayer2D pour les sons de dégâts
+	hurt_sound = AudioStreamPlayer2D.new()
+	add_child(hurt_sound)
+	hurt_sound.volume_db = -5  # Volume modéré
+	
+	# Charger les 7 sons de dégâts
+	hurt_sounds = []
+	for i in range(1, 8):  # De 1 à 7
+		var sound_path = "res://songs/human-hurt-song-" + str(i) + ".wav"
+		var sound = load(sound_path)
+		if sound:
+			hurt_sounds.append(sound)
+			print("Son de dégâts chargé: " + sound_path)
+		else:
+			print("Erreur: Impossible de charger le son: " + sound_path)
+
+func play_random_hurt_sound():
+	if hurt_sounds.size() == 0 or not hurt_sound:
+		return
+	
+	# Arrêter le son précédent s'il est en cours
+	if hurt_sound.playing:
+		hurt_sound.stop()
+	
+	# Choisir un son aléatoire
+	var random_index = randi() % hurt_sounds.size()
+	hurt_sound.stream = hurt_sounds[random_index]
+	hurt_sound.play()
+	print("Son de dégâts joué: human-hurt-song-" + str(random_index + 1))
