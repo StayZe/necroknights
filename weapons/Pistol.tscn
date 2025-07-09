@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://rfxiuqrtc52u" path="res://weapons/Pistol.gd" id="1_oidtw"]
 [ext_resource type="Texture2D" uid="uid://bx3wrvjjqy4dl" path="res://sprites/weapons/Pistol_Flicker.png" id="2_dxc1y"]
-[ext_resource type="PackedScene" uid="uid://byexhcn7esfm1" path="res://weapons/Projectile.tscn" id="3_4yj5k"]
+[ext_resource type="PackedScene" path="res://weapons/PistolBullet.tscn" id="3_4yj5k"]
 [ext_resource type="Texture2D" uid="uid://wgyoa5ds0x4d" path="res://sprites/weapons/Pistol_Shoot.png" id="4_ub27n"]
 
 [sub_resource type="Animation" id="Animation_qnp9y"]

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://weapons/Sniper.gd" id="1_q7d6a"]
 [ext_resource type="Texture2D" uid="uid://bdyhnm7aw0x57" path="res://sprites/weapons/Sniper_Flicker.png" id="2_ysv7e"]
-[ext_resource type="PackedScene" uid="uid://byexhcn7esfm1" path="res://weapons/Projectile.tscn" id="3_2jqbm"]
+[ext_resource type="PackedScene" path="res://weapons/SniperBullet.tscn" id="3_2jqbm"]
 [ext_resource type="Texture2D" uid="uid://ddogb7gk8sfhv" path="res://sprites/weapons/Sniper_Shoot.png" id="4_y6suc"]
 
 [sub_resource type="Animation" id="Animation_qnp9y"]
