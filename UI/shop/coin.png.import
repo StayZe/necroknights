@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://mceolftjq0jp"
-path="res://.godot/imported/Zombie 4_idle.png-d71adc9e944f4e6827b54373e45a4fec.ctex"
+uid="uid://scyh32fgxwvq"
+path="res://.godot/imported/coin.png-c3aa424ffd5bfbd87e756403eed3491c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://sprites/zombies/Zombie 4_idle.png"
-dest_files=["res://.godot/imported/Zombie 4_idle.png-d71adc9e944f4e6827b54373e45a4fec.ctex"]
+source_file="res://UI/shop/coin.png"
+dest_files=["res://.godot/imported/coin.png-c3aa424ffd5bfbd87e756403eed3491c.ctex"]
 
 [params]
 

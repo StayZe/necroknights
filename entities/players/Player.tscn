@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="3_xv1jl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
+size = Vector2(12, 16)
 
 [sub_resource type="Animation" id="Animation_onrkg"]
 length = 0.001
@@ -99,7 +100,8 @@ _data = {
 }
 
 [node name="Player" type="CharacterBody2D" groups=["player"]]
-collision_mask = 2
+collision_layer = 2
+collision_mask = 1
 script = ExtResource("1_5wkpq")
 weapon_pickup_scene = ExtResource("3_xv1jl")
 

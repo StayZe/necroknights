@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drj6mnspd2k8y"
-path="res://.godot/imported/Zombie 4_hit.png-f00345501b55fa36e8f7052fb2b3be41.ctex"
+uid="uid://ing3oe4ilggq"
+path="res://.godot/imported/medicalKit.png-3bad76105be2d209cedb2f85dbca1590.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://sprites/zombies/Zombie 4_hit.png"
-dest_files=["res://.godot/imported/Zombie 4_hit.png-f00345501b55fa36e8f7052fb2b3be41.ctex"]
+source_file="res://UI/bonus/medicalKit.png"
+dest_files=["res://.godot/imported/medicalKit.png-3bad76105be2d209cedb2f85dbca1590.ctex"]
 
 [params]
 

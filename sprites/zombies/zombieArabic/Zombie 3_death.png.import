@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://barr7expkpo77"
-path="res://.godot/imported/Zombie 4_knocked .png-00bde46748c232655b8370081140378f.ctex"
+uid="uid://cje8aydrmbykx"
+path="res://.godot/imported/Zombie 3_death.png-f5c8d331698a124680756efa58b4491c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://sprites/zombies/Zombie 4_knocked .png"
-dest_files=["res://.godot/imported/Zombie 4_knocked .png-00bde46748c232655b8370081140378f.ctex"]
+source_file="res://sprites/zombies/zombieArabic/Zombie 3_death.png"
+dest_files=["res://.godot/imported/Zombie 3_death.png-f5c8d331698a124680756efa58b4491c.ctex"]
 
 [params]
 

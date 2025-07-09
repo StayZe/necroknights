@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 WaveManager="*res://WaveManager.gd"
 GameManager="*res://GameManager.gd"
+PlayerSettings="*res://PlayerSettings.gd"
+AudioZoneManager="*res://AudioZoneManager.gd"
 
 [display]
 
@@ -87,6 +89,14 @@ weapon_slot_2={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":50,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
+
+[layer_names]
+
+2d_physics/layer_1="Walls"
+2d_physics/layer_2="Player"
+2d_physics/layer_3="Enemies"
+2d_physics/layer_4="Pickups"
+2d_physics/layer_5="Projectiles"
 
 [rendering]
 

@@ -15,6 +15,10 @@ var health: float = max_health
 var is_invulnerable: bool = false
 var invulnerability_time: float = 0.5  # Temps d'invulnérabilité après avoir pris des dégâts
 
+# 📌 Son de dégâts
+var hurt_sound: AudioStreamPlayer2D
+var hurt_sounds: Array[AudioStream] = []
+
 # 📌 Gestion des armes
 @export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
 var current_weapon: Weapon = null  # Référence à l'arme actuelle
@@ -30,6 +34,14 @@ var active_weapon_slot: int = 0  # 0 = aucune arme, 1 = slot 1, 2 = slot 2
 # Pour stocker le chemin de la scène de l'arme originale
 var current_weapon_scene_path: String = ""
 
+# 📌 Variables de boost
+var current_speed_multiplier: float = 1.0
+var speed_boost_active: bool = false
+var damage_boost_multiplier: float = 1.0
+var damage_boost_active: bool = false
+var damage_boost_timer: Timer
+var speed_boost_timer: Timer
+
 # DEBUG: Test rapide du Game Over (à supprimer après test)
 var debug_game_over = false
 
@@ -37,9 +49,18 @@ func _ready():
 	# Ajouter le joueur au groupe pour la détection
 	add_to_group("player")
 	
+	# Appliquer le skin sélectionné
+	apply_selected_skin()
+	
 	# Initialiser la santé
 	health = max_health
 	update_health_display()
+	
+	# Créer les timers pour les boosts
+	create_boost_timers()
+	
+	# Configurer les sons de dégâts
+	setup_hurt_sounds()
 	
 	# S'enregistrer auprès du WaveManager
 	if get_node_or_null("/root/WaveManager"):
@@ -48,12 +69,22 @@ func _ready():
 	if weapon:
 		current_weapon = get_node(weapon)
 	
-	print("Joueur initialisé - Santé: " + str(health))
+	print("Joueur initialisé - Santé: " + str(health) + " - Skin: " + str(PlayerSettings.selected_skin))
 
 func _physics_process(delta):
 	get_input()
 	update_facing_direction()
+	
+	# Améliorer la gestion des collisions
+	var was_on_floor = is_on_floor()
 	move_and_slide()
+	
+	# Vérifier les collisions après le mouvement
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		if collision:
+			# Debug pour voir avec quoi on collisionne
+			print("Collision détectée avec: ", collision.get_collider())
 	
 	# 📌 Gestion du changement d'arme avec les touches 1 et 2
 	if Input.is_action_just_pressed("weapon_slot_1"):
@@ -71,7 +102,8 @@ func _physics_process(delta):
 # 📌 Gère le déplacement et les animations
 func get_input():
 	var input_direction = Input.get_vector("left", "right", "up", "down")
-	velocity = input_direction * SPEED
+	# Appliquer le multiplicateur de vitesse
+	velocity = input_direction * SPEED * current_speed_multiplier
 
 	# Les animations sont maintenant principalement gérées par la fonction update_facing_direction
 	if anim and input_direction == Vector2.ZERO:
@@ -314,6 +346,9 @@ func take_damage(damage_amount):
 	health -= damage_amount
 	update_health_display()
 	
+	# Jouer un son de dégâts aléatoire
+	play_random_hurt_sound()
+	
 	# Animation de dégâts
 	sprite.modulate = Color(1, 0.3, 0.3, 1)  # Teinte rouge
 	
@@ -339,3 +374,103 @@ func die():
 		WaveManager.trigger_game_over()
 	else:
 		print("Erreur: WaveManager non trouvé pour déclencher le Game Over")
+
+# 📌 Méthodes de boost
+
+func heal_to_full():
+	health = max_health
+	update_health_display()
+	print("🏥 Vie restaurée à 100% !")
+
+func apply_damage_boost(multiplier: float, duration: float):
+	damage_boost_multiplier = multiplier
+	damage_boost_active = true
+	damage_boost_timer.wait_time = duration
+	damage_boost_timer.start()
+	print("💀 Boost de dégâts activé ! x" + str(multiplier) + " pendant " + str(duration) + " secondes")
+
+func apply_speed_boost(multiplier: float, duration: float = 0.0):
+	current_speed_multiplier = multiplier
+	speed_boost_active = true
+	
+	if duration > 0:
+		speed_boost_timer.wait_time = duration
+		# Déconnecter le signal existant avant de reconnecter pour éviter les doublons
+		if speed_boost_timer.timeout.is_connected(_on_speed_boost_timeout):
+			speed_boost_timer.timeout.disconnect(_on_speed_boost_timeout)
+		speed_boost_timer.timeout.connect(_on_speed_boost_timeout)
+		speed_boost_timer.start()
+		print("⚡ Boost de vitesse activé ! x" + str(multiplier) + " pendant " + str(duration) + " secondes")
+	else:
+		print("⚡ Boost de vitesse activé ! x" + str(multiplier) + " (permanent)")
+
+func _on_damage_boost_timeout():
+	damage_boost_multiplier = 1.0
+	damage_boost_active = false
+	print("💀 Boost de dégâts terminé, retour à la normale")
+
+func _on_speed_boost_timeout():
+	current_speed_multiplier = 1.0
+	speed_boost_active = false
+	print("⚡ Boost de vitesse terminé, retour à la vitesse normale")
+
+func get_damage_multiplier() -> float:
+	return damage_boost_multiplier
+
+func get_speed_multiplier() -> float:
+	return current_speed_multiplier
+
+func create_boost_timers():
+	# Timer pour le boost de dégâts
+	damage_boost_timer = Timer.new()
+	damage_boost_timer.wait_time = 30.0
+	damage_boost_timer.one_shot = true
+	damage_boost_timer.timeout.connect(_on_damage_boost_timeout)
+	add_child(damage_boost_timer)
+	
+	# Timer pour le boost de vitesse
+	speed_boost_timer = Timer.new()
+	speed_boost_timer.one_shot = true
+	add_child(speed_boost_timer)
+
+# 📌 Applique le skin sélectionné au sprite du joueur
+func apply_selected_skin():
+	if PlayerSettings and sprite:
+		var selected_sprite_path = PlayerSettings.get_selected_sprite_path()
+		var texture = load(selected_sprite_path)
+		if texture:
+			sprite.texture = texture
+			print("Skin appliqué: " + selected_sprite_path)
+		else:
+			print("Erreur: Impossible de charger le sprite: " + selected_sprite_path)
+
+func setup_hurt_sounds():
+	# Créer l'AudioStreamPlayer2D pour les sons de dégâts
+	hurt_sound = AudioStreamPlayer2D.new()
+	add_child(hurt_sound)
+	hurt_sound.volume_db = -5  # Volume modéré
+	
+	# Charger les 7 sons de dégâts
+	hurt_sounds = []
+	for i in range(1, 8):  # De 1 à 7
+		var sound_path = "res://songs/human-hurt-song-" + str(i) + ".wav"
+		var sound = load(sound_path)
+		if sound:
+			hurt_sounds.append(sound)
+			print("Son de dégâts chargé: " + sound_path)
+		else:
+			print("Erreur: Impossible de charger le son: " + sound_path)
+
+func play_random_hurt_sound():
+	if hurt_sounds.size() == 0 or not hurt_sound:
+		return
+	
+	# Arrêter le son précédent s'il est en cours
+	if hurt_sound.playing:
+		hurt_sound.stop()
+	
+	# Choisir un son aléatoire
+	var random_index = randi() % hurt_sounds.size()
+	hurt_sound.stream = hurt_sounds[random_index]
+	hurt_sound.play()
+	print("Son de dégâts joué: human-hurt-song-" + str(random_index + 1))

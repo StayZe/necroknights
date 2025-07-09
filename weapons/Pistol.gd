@@ -14,6 +14,9 @@ var is_shooting = false  # Pour éviter de tirer pendant une animation en cours
 var player_facing_right = true  # Direction à laquelle le joueur fait face
 var player_direction = "right"  # Direction du joueur (right, left, up, down)
 
+# Son de tir
+var shoot_sound: AudioStreamPlayer2D
+
 func _ready():
 	fire_rate = 0.4  # Tir rapide
 	reload_time = 1.2  # Temps de recharge rapide
@@ -36,6 +39,15 @@ func _ready():
 	# Connecter le signal d'animation terminée
 	if animationPlayer:
 		animationPlayer.animation_finished.connect(_on_animation_finished)
+	
+	# Créer et configurer le son de tir
+	shoot_sound = AudioStreamPlayer2D.new()
+	add_child(shoot_sound)
+	shoot_sound.stream = preload("res://songs/pistol-gun-sound.wav")
+	shoot_sound.volume_db = -5  # Ajuster le volume si nécessaire
+	
+	# Appeler le _ready() parent pour initialiser le son de rechargement
+	super._ready()
 
 # Configure les spritesheets selon leur contenu
 func configure_sprites():
@@ -125,11 +137,21 @@ func shoot(direction: Vector2):
 			is_shooting = true
 			emit_signal("shoot_projectile", direction)
 			
+			# Jouer le son de tir (couper le son précédent s'il joue encore)
+			if shoot_sound:
+				shoot_sound.stop()
+				shoot_sound.play()
+			
 			# Play shooting animation
 			play_shoot_animation()
 			
 			spawn_projectile(direction)
 			shootDelay.start()  # Démarre le timer de délai entre les tirs
+		elif can_shoot and ammo <= 0:
+			# Jouer le son d'arme vide (hérité de la classe parent)
+			if empty_gun_sound:
+				empty_gun_sound.stop()
+				empty_gun_sound.play()
 
 # Fonction appelée quand une animation est terminée
 func _on_animation_finished(anim_name: String):
@@ -142,6 +164,7 @@ func _on_animation_finished(anim_name: String):
 func reload():
 	if ammo < max_ammo and reloadTimer.is_stopped() and !is_shooting:
 		can_shoot = false
+		play_reload_sound()  # Jouer le son de rechargement
 		reloadTimer.start()  # Démarre le timer de rechargement
 		await reloadTimer.timeout
 		ammo = max_ammo
@@ -188,3 +211,8 @@ func spawn_projectile(direction: Vector2):
 		projectile.global_position = global_position + shoot_offset
 		projectile.direction = direction  # Applique la direction du tir
 		projectile.damage = 20.0  # Dégâts du pistolet
+		
+		# Passer la référence du joueur au projectile (APRÈS avoir défini les dégâts)
+		var player = get_parent()
+		if player is Player and projectile.has_method("set_player_reference"):
+			projectile.set_player_reference(player)
