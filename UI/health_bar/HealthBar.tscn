@@ -20,8 +20,8 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 200.0
-offset_bottom = 52.0
+offset_right = 220.0
+offset_bottom = 65.0
 texture = ExtResource("1_decoration")
 
 [node name="HealthBarFill" type="TextureRect" parent="."]
@@ -32,8 +32,8 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 34.0
-offset_top = 26.0
-offset_right = 186.0
-offset_bottom = 46.0
+offset_top = 30.0
+offset_right = 206.0
+offset_bottom = 55.0
 texture = ExtResource("2_health_bar")
 expand_mode = 1 

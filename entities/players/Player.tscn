@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://entities/players/Player.gd" id="1_5wkpq"]
 [ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/players/1.png" id="1_4flbx"]
-[ext_resource type="PackedScene" uid="uid://13bn2c3xstdj" path="res://weapons/WeaponPickupsTest.tscn" id="3_xv1jl"]
+[ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="3_xv1jl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
 size = Vector2(12, 12)

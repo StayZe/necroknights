@@ -6,7 +6,7 @@ class_name HealthBar
 
 var max_health: float = 100.0
 var current_health: float = 100.0
-var original_width: float = 152.0  # Largeur calculée : 186 - 34 = 152
+var original_width: float = 172.0  # Largeur calculée : 206 - 34 = 172
 
 func _ready():
 	print("🏥 Barre de santé initialisée")
