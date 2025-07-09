@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://bwq8h8v7yxmqr"]
+[gd_scene load_steps=6 format=3 uid="uid://bwq8h8v7yxmqr"]
 
 [ext_resource type="Script" path="res://UI/WaveUI.gd" id="1_8k4qh"]
+[ext_resource type="PackedScene" uid="uid://bvq2h7k3xmq1r" path="res://UI/health_bar/HealthBar.tscn" id="2_health_bar"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_1"]
 font_size = 24
@@ -36,6 +37,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+
+[node name="HealthBar" parent="UI" instance=ExtResource("2_health_bar")]
+layout_mode = 1
 
 [node name="WaveInfo" type="VBoxContainer" parent="UI"]
 layout_mode = 1

@@ -6,7 +6,6 @@ const SPEED = 100.0
 @onready var anim = $AnimationPlayer  # Assurez-vous qu'il correspond à votre noeud
 @onready var sprite = $sprite  # Ajout pour manipuler le sprite correctement
 @onready var last_direction = "walk_down"  # Mémorise la dernière direction
-@onready var health_label = $HealthLabel
 var player_facing_right = true  # Indique si le joueur regarde à droite ou à gauche
 
 # 📌 Variables de santé
@@ -332,8 +331,17 @@ func drop_current_weapon():
 
 # 📌 Fonction pour mettre à jour l'affichage de la santé
 func update_health_display():
-	if health_label:
-		health_label.text = "HP: " + str(int(health))
+	# Trouver la WaveUI et mettre à jour la barre de santé
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_health_bar"):
+		wave_ui.update_health_bar(health, max_health)
+		print("🏥 Barre de santé mise à jour: " + str(health) + "/" + str(max_health))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour la barre de santé")
 
 # 📌 Fonction pour prendre des dégâts
 func take_damage(damage_amount):
