@@ -18,6 +18,11 @@ var medical_kit_texture = preload("res://UI/bonus/medicalKit.png")
 var skull_texture = preload("res://UI/bonus/skull007.png")
 var speed_boost_texture = preload("res://UI/bonus/speedBoost.png")
 
+# Sons des bonus
+var nuke_sound: AudioStreamPlayer2D
+var bandage_sound: AudioStreamPlayer2D
+var insta_kill_sound: AudioStreamPlayer2D
+
 var collected = false
 
 func _ready():
@@ -32,11 +37,33 @@ func _ready():
 	monitoring = true
 	monitorable = true
 	
+	# Créer et configurer les sons de bonus
+	setup_boost_sounds()
+	
 	# Configurer l'apparence selon le type de boost
 	setup_boost_appearance()
 	
 	# Ajouter au groupe des boosts
 	add_to_group("boosts")
+
+func setup_boost_sounds():
+	# Son de la bombe atomique
+	nuke_sound = AudioStreamPlayer2D.new()
+	add_child(nuke_sound)
+	nuke_sound.stream = preload("res://songs/nuke-sound.wav")
+	nuke_sound.volume_db = -3  # Volume un peu fort pour l'impact
+	
+	# Son du kit de soin
+	bandage_sound = AudioStreamPlayer2D.new()
+	add_child(bandage_sound)
+	bandage_sound.stream = preload("res://songs/bandage-sound.wav")
+	bandage_sound.volume_db = -8  # Volume plus doux
+	
+	# Son de l'instant kill
+	insta_kill_sound = AudioStreamPlayer2D.new()
+	add_child(insta_kill_sound)
+	insta_kill_sound.stream = preload("res://songs/insta-kill-sound.wav")
+	insta_kill_sound.volume_db = -5  # Volume modéré
 
 func setup_boost_appearance():
 	if not sprite:
@@ -70,28 +97,52 @@ func collect_boost(player):
 		
 	collected = true
 	
-	# Appliquer l'effet du boost
-	apply_boost_effect(player)
+	# Rendre le boost invisible et non-interactable immédiatement
+	collision.set_deferred("disabled", true)
 	
 	# Animation de récupération (comme les pièces)
 	var tween = create_tween()
 	tween.parallel().tween_property(self, "scale", Vector2(1.5, 1.5), 0.2)
 	tween.parallel().tween_property(self, "modulate:a", 0.0, 0.2)
 	
-	# Supprimer le boost après l'animation
+	# Appliquer l'effet du boost et jouer le son
+	var current_sound = apply_boost_effect(player)
+	
+	# Attendre que l'animation de disparition soit finie
 	await tween.finished
+	
+	# Si un son est en cours, attendre qu'il se termine
+	if current_sound and current_sound.playing:
+		await current_sound.finished
+	
+	# Supprimer le boost après que le son soit complètement fini
 	queue_free()
 
-func apply_boost_effect(player):
+func apply_boost_effect(player) -> AudioStreamPlayer2D:
+	var current_sound: AudioStreamPlayer2D = null
+	
+	# Jouer le son approprié selon le type de bonus
 	match boost_type:
 		BoostType.ATOMIC_BOMB:
+			if nuke_sound:
+				nuke_sound.play()
+				current_sound = nuke_sound
 			apply_atomic_bomb()
 		BoostType.MEDICAL_KIT:
+			if bandage_sound:
+				bandage_sound.play()
+				current_sound = bandage_sound
 			apply_medical_kit(player)
 		BoostType.SKULL:
+			if insta_kill_sound:
+				insta_kill_sound.play()
+				current_sound = insta_kill_sound
 			apply_skull_boost(player)
 		BoostType.SPEED_BOOST:
+			# Pas de son pour l'instant
 			apply_speed_boost(player)
+	
+	return current_sound
 
 func apply_atomic_bomb():
 	# Tuer tous les zombies sur la map

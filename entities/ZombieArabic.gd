@@ -42,6 +42,13 @@ var coin_scene = preload("res://entities/Coin.tscn")
 # Précharger la scène de boost
 var boost_scene = preload("res://entities/BoostItem.tscn")
 
+# Sons de zombies
+var zombie_sound: AudioStreamPlayer2D
+var zombie_sounds: Array[AudioStream] = []
+var sound_timer: Timer
+var sound_cooldown_min: float = 2.0
+var sound_cooldown_max: float = 6.0
+
 func _ready():
 	health = max_health
 	attack_timer.wait_time = attack_cooldown
@@ -76,6 +83,9 @@ func _ready():
 	# Configuration des layers de collision
 	collision_layer = 4  # Layer 3 (Enemies)
 	collision_mask = 1 | 2  # Layer 1 (Walls) + Layer 2 (Player)
+	
+	# Configurer les sons de zombies
+	setup_zombie_sounds()
 
 func _process(_delta):
 	# Les animations sont gérées via change_state et les fonctions de transition
@@ -502,4 +512,88 @@ func get_obstacle_avoidance_direction():
 func update_depth_sorting():
 	# Plus le zombie est en bas de l'écran, plus il doit être rendu devant
 	# Utiliser la position Y pour déterminer l'ordre de rendu
-	z_index = int(global_position.y / 10)  # Diviser par 10 pour éviter des valeurs trop grandes 
+	z_index = int(global_position.y / 10)  # Diviser par 10 pour éviter des valeurs trop grandes
+
+func setup_zombie_sounds():
+	# Créer l'AudioStreamPlayer2D pour les sons de zombies
+	zombie_sound = AudioStreamPlayer2D.new()
+	add_child(zombie_sound)
+	zombie_sound.volume_db = -7  # Volume modéré pour le zombie arabe
+	
+	# Configuration de la distance d'audition (ajustée pour le jeu)
+	zombie_sound.max_distance = 1000  # 100m - distance beaucoup plus grande
+	zombie_sound.attenuation = 1.5  # Dégradé plus doux du son
+	
+	# Charger les sons de zombies
+	zombie_sounds = []
+	
+	# Charger les sons de grognement (4 sons)
+	for i in range(1, 5):  # De 1 à 4
+		var sound_path = "res://songs/zombie-growl-sound-" + str(i) + ".wav"
+		var sound = load(sound_path)
+		if sound:
+			zombie_sounds.append(sound)
+			print("Son de zombie arabe chargé: " + sound_path)
+		else:
+			print("Erreur: Impossible de charger le son: " + sound_path)
+	
+	# Charger les sons de gémissement (3 sons)
+	for i in range(1, 4):  # De 1 à 3
+		var sound_path = "res://songs/zombie-moaning-sound-" + str(i) + ".wav"
+		var sound = load(sound_path)
+		if sound:
+			zombie_sounds.append(sound)
+			print("Son de zombie arabe chargé: " + sound_path)
+		else:
+			print("Erreur: Impossible de charger le son: " + sound_path)
+	
+	# Charger le son de rugissement
+	var roar_sound = load("res://songs/zombie-roar.wav")
+	if roar_sound:
+		zombie_sounds.append(roar_sound)
+		print("Son de zombie arabe chargé: zombie-roar.wav")
+	else:
+		print("Erreur: Impossible de charger le son: zombie-roar.wav")
+	
+	# Créer le timer pour les sons aléatoires
+	sound_timer = Timer.new()
+	add_child(sound_timer)
+	sound_timer.one_shot = true
+	sound_timer.timeout.connect(_on_sound_timer_timeout)
+	
+	# Démarrer le premier son après un délai aléatoire
+	start_random_sound_timer()
+
+func play_random_zombie_sound():
+	if zombie_sounds.size() == 0 or not zombie_sound:
+		return
+	
+	# Vérifier si le zombie est dans un état où il peut faire du bruit
+	if current_state == State.DEATH or has_exploded:
+		return
+	
+	# Choisir un son aléatoire
+	var random_index = randi() % zombie_sounds.size()
+	zombie_sound.stream = zombie_sounds[random_index]
+	zombie_sound.play()
+	
+	# Déterminer le type de son pour le debug
+	var sound_type = ""
+	if random_index < 4:
+		sound_type = "growl-" + str(random_index + 1)
+	elif random_index < 7:
+		sound_type = "moaning-" + str(random_index - 3)
+	else:
+		sound_type = "roar"
+	
+	print("ZombieArabic émet un son: " + sound_type)
+
+func start_random_sound_timer():
+	if sound_timer:
+		var random_delay = randf_range(sound_cooldown_min, sound_cooldown_max)
+		sound_timer.wait_time = random_delay
+		sound_timer.start()
+
+func _on_sound_timer_timeout():
+	play_random_zombie_sound()
+	start_random_sound_timer()  # Programmer le prochain son 
