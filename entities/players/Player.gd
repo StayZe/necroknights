@@ -6,7 +6,6 @@ const SPEED = 100.0
 @onready var anim = $AnimationPlayer  # Assurez-vous qu'il correspond à votre noeud
 @onready var sprite = $sprite  # Ajout pour manipuler le sprite correctement
 @onready var last_direction = "walk_down"  # Mémorise la dernière direction
-@onready var health_label = $HealthLabel
 var player_facing_right = true  # Indique si le joueur regarde à droite ou à gauche
 
 # 📌 Variables de santé
@@ -29,7 +28,7 @@ var weapon_slot_1: Weapon = null  # Arme dans le slot 1
 var weapon_slot_2: Weapon = null  # Arme dans le slot 2
 var weapon_slot_1_scene_path: String = ""  # Chemin de la scène de l'arme du slot 1
 var weapon_slot_2_scene_path: String = ""  # Chemin de la scène de l'arme du slot 2
-var active_weapon_slot: int = 0  # 0 = aucune arme, 1 = slot 1, 2 = slot 2
+var active_weapon_slot: int = 1  # 1 = slot 1, 2 = slot 2 (par défaut slot 1)
 
 # Pour stocker le chemin de la scène de l'arme originale
 var current_weapon_scene_path: String = ""
@@ -70,6 +69,10 @@ func _ready():
 		current_weapon = get_node(weapon)
 	
 	print("Joueur initialisé - Santé: " + str(health) + " - Skin: " + str(PlayerSettings.selected_skin))
+	
+	# Initialiser l'inventaire d'armes après un délai pour que l'UI soit chargée
+	await get_tree().create_timer(0.1).timeout
+	update_weapon_inventory_display()
 
 func _physics_process(delta):
 	get_input()
@@ -253,6 +256,9 @@ func equip_weapon(new_weapon_scene: PackedScene):
 	# Si l'arme a une méthode pour configurer les sprites, l'appeler
 	if new_weapon.has_method("configure_sprites"):
 		new_weapon.configure_sprites()
+	
+	# Mettre à jour l'inventaire UI
+	update_weapon_inventory_display()
 
 # 📌 Fonction pour changer de slot d'arme actif
 func switch_to_weapon_slot(slot_number: int):
@@ -262,7 +268,7 @@ func switch_to_weapon_slot(slot_number: int):
 	# Réinitialiser l'état actuel
 	current_weapon = null
 	current_weapon_scene_path = ""
-	active_weapon_slot = 0
+	active_weapon_slot = slot_number
 	
 	# Activer l'arme du slot demandé
 	match slot_number:
@@ -270,16 +276,17 @@ func switch_to_weapon_slot(slot_number: int):
 			if weapon_slot_1:
 				current_weapon = weapon_slot_1
 				current_weapon_scene_path = weapon_slot_1_scene_path
-				active_weapon_slot = 1
 				current_weapon.visible = true
 				adjust_weapon_position()
 		2:
 			if weapon_slot_2:
 				current_weapon = weapon_slot_2
 				current_weapon_scene_path = weapon_slot_2_scene_path
-				active_weapon_slot = 2
 				current_weapon.visible = true
 				adjust_weapon_position()
+	
+	# Mettre à jour l'inventaire UI
+	update_weapon_inventory_display()
 
 # 📌 Fonction helper pour cacher toutes les armes
 func hide_all_weapons():
@@ -290,7 +297,7 @@ func hide_all_weapons():
 
 # 📌 Fonction pour déposer l'arme au sol
 func drop_current_weapon():
-	if not current_weapon or active_weapon_slot == 0:
+	if not current_weapon:
 		print("Aucune arme à déposer")
 		return
 		
@@ -325,15 +332,50 @@ func drop_current_weapon():
 		weapon_slot_2_scene_path = ""
 		print("Arme du slot 2 déposée")
 	
-	# Réinitialiser les références
+	# Réinitialiser les références de l'arme actuelle
 	current_weapon = null
 	current_weapon_scene_path = ""
-	active_weapon_slot = 0
+	
+	# Choisir le nouveau slot actif selon la disponibilité des armes
+	if active_weapon_slot == 1 and weapon_slot_2 != null:
+		# Si on a lâché le slot 1 et qu'il y a une arme dans le slot 2
+		switch_to_weapon_slot(2)
+	elif active_weapon_slot == 2 and weapon_slot_1 != null:
+		# Si on a lâché le slot 2 et qu'il y a une arme dans le slot 1
+		switch_to_weapon_slot(1)
+	else:
+		# Aucune arme disponible dans l'autre slot
+		# Garder le slot actuel mais vide, et forcer la mise à jour UI
+		print("🎒 Slot ", active_weapon_slot, " maintenant vide")
+		update_weapon_inventory_display()
 
 # 📌 Fonction pour mettre à jour l'affichage de la santé
 func update_health_display():
-	if health_label:
-		health_label.text = "HP: " + str(int(health))
+	# Trouver la WaveUI et mettre à jour la barre de santé
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_health_bar"):
+		wave_ui.update_health_bar(health, max_health)
+		print("🏥 Barre de santé mise à jour: " + str(health) + "/" + str(max_health))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour la barre de santé")
+
+# 📌 Fonction pour mettre à jour l'inventaire d'armes dans l'UI
+func update_weapon_inventory_display():
+	# Trouver la WaveUI et mettre à jour l'inventaire
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_weapon_inventory"):
+		wave_ui.update_weapon_inventory(weapon_slot_1_scene_path, weapon_slot_2_scene_path, active_weapon_slot)
+		print("🎒 Inventaire d'armes mis à jour - Slot actif: " + str(active_weapon_slot))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour l'inventaire")
 
 # 📌 Fonction pour prendre des dégâts
 func take_damage(damage_amount):

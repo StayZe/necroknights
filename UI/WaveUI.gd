@@ -6,10 +6,15 @@ class_name WaveUI
 @onready var record_label = $UI/WaveInfo/RecordLabel
 @onready var coins_label = $UI/WaveInfo/CoinsLabel
 @onready var pause_timer = $UI/PauseTimer
+@onready var health_bar = $UI/HealthBar
+@onready var weapon_inventory = $UI/WeaponInventory
 
 var current_wave_active = false
 
 func _ready():
+	# Ajouter au groupe wave_ui pour faciliter la recherche
+	add_to_group("wave_ui")
+	
 	# Se connecter aux signaux du WaveManager
 	if WaveManager:
 		WaveManager.wave_started.connect(_on_wave_started)
@@ -32,6 +37,16 @@ func _process(_delta):
 		var wave_info = WaveManager.get_current_wave_info()
 		var killed = wave_info.zombies_total - wave_info.zombies_remaining
 		zombies_label.text = "Zombies: " + str(killed) + "/" + str(wave_info.zombies_total)
+
+# Fonction pour mettre à jour la barre de santé
+func update_health_bar(health: float, max_health: float):
+	if health_bar:
+		health_bar.update_health(health, max_health)
+
+# Fonction pour mettre à jour l'inventaire d'armes
+func update_weapon_inventory(slot1_weapon: String, slot2_weapon: String, active_slot: int):
+	if weapon_inventory:
+		weapon_inventory.update_inventory(slot1_weapon, slot2_weapon, active_slot)
 
 func _on_coins_changed(new_amount: int):
 	if coins_label:

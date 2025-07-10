@@ -1,14 +1,14 @@
-[gd_scene load_steps=11 format=3 uid="uid://d3qpdawl3rg22"]
+[gd_scene load_steps=13 format=3 uid="uid://d3qpdawl3rg22"]
 
+[ext_resource type="Script" path="res://entities/players/Player.gd" id="1_5wkpq"]
 [ext_resource type="Texture2D" uid="uid://ciay3mspqdggm" path="res://sprites/players/1.png" id="1_4flbx"]
-[ext_resource type="Script" uid="uid://s8minwgmys4j" path="res://entities/players/Player.gd" id="1_5wkpq"]
 [ext_resource type="PackedScene" uid="uid://dj34w5mvtg6ay" path="res://weapons/WeaponPickup.tscn" id="3_xv1jl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
-size = Vector2(12, 16)
+size = Vector2(12, 12)
 
 [sub_resource type="Animation" id="Animation_onrkg"]
-length = 0.001
+resource_name = "RESET"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -19,7 +19,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [3]
+"values": [0]
 }
 
 [sub_resource type="Animation" id="Animation_i3pqv"]
@@ -36,7 +36,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 1,
-"values": [1, 5, 9, 13, 17]
+"values": [0, 4, 8, 12, 16]
 }
 
 [sub_resource type="Animation" id="Animation_sweqy"]
@@ -53,7 +53,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 1,
-"values": [0, 4, 8, 12, 16]
+"values": [1, 5, 9, 13, 17]
 }
 
 [sub_resource type="Animation" id="Animation_hqtel"]
@@ -123,15 +123,3 @@ shape = SubResource("RectangleShape2D_i3pqv")
 libraries = {
 &"": SubResource("AnimationLibrary_1jxqw")
 }
-
-[node name="HealthLabel" type="Label" parent="."]
-offset_left = -26.0
-offset_top = -32.0
-offset_right = 26.0
-offset_bottom = -16.0
-theme_override_colors/font_color = Color(0, 0.494118, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 10
-text = "HP: 100"
-horizontal_alignment = 1
