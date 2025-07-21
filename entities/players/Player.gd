@@ -260,6 +260,18 @@ func equip_weapon(new_weapon_scene: PackedScene):
 	# Mettre à jour l'inventaire UI
 	update_weapon_inventory_display()
 
+# 📌 Fonction pour ramasser une arme à partir d'un chemin de fichier (utilisée par le shop)
+func pickup_weapon_from_path(weapon_path: String):
+	# Charger la scène d'arme depuis le chemin
+	var weapon_scene = load(weapon_path) as PackedScene
+	if not weapon_scene:
+		print("🏪 Erreur: Impossible de charger l'arme depuis: ", weapon_path)
+		return
+	
+	# Utiliser la méthode existante pour équiper l'arme
+	equip_weapon(weapon_scene)
+	print("🔫 Arme ramassée depuis le shop: ", weapon_path)
+
 # 📌 Fonction pour changer de slot d'arme actif
 func switch_to_weapon_slot(slot_number: int):
 	# Cacher toutes les armes

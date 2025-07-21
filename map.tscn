@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=4 uid="uid://6t0kob2r68og"]
+[gd_scene load_steps=41 format=4 uid="uid://6t0kob2r68og"]
 
 [ext_resource type="Script" uid="uid://c4oh1mlbeelpm" path="res://GameManager.gd" id="1_6qsgm"]
 [ext_resource type="Texture2D" uid="uid://c4u103tv3c26s" path="res://sprites/map/16x16/main_lev.png" id="1_i3pqv"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://bwq8h8v7yxmqr" path="res://UI/WaveUI.tscn" id="12_0t07s"]
 [ext_resource type="PackedScene" uid="uid://bqmgvn68bcrxi" path="res://UI/GameOverScreen.tscn" id="14_2wwcf"]
 [ext_resource type="PackedScene" uid="uid://c8mk2mav4xmqp" path="res://UI/PauseMenu.tscn" id="14_ooc2g"]
+[ext_resource type="PackedScene" uid="uid://d3rtiyiumsn2e" path="res://UI/shop.tscn" id="15_shop"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sweqy"]
 texture = ExtResource("1_i3pqv")
@@ -18724,16 +18725,19 @@ position = Vector2(518, 483)
 safe_margin = 0.001
 
 [node name="ZombieSpawner" parent="." instance=ExtResource("7_1jxqw")]
+visible = false
 position = Vector2(129.002, -268)
 rotation = 0.415388
 scale = Vector2(7, 7)
 skew = -0.0139626
 
 [node name="ZombieSpawner2" parent="." instance=ExtResource("7_1jxqw")]
+visible = false
 position = Vector2(1248.02, 43)
 scale = Vector2(7, 7)
 
 [node name="ZombieSpawner3" parent="." instance=ExtResource("7_1jxqw")]
+visible = false
 position = Vector2(245.003, 440)
 scale = Vector2(8, 8)
 spawn_distance = 30.0
@@ -18776,3 +18780,6 @@ position = Vector2(531, 396)
 [node name="PauseMenu" parent="." instance=ExtResource("14_ooc2g")]
 
 [node name="GameOverScreen" parent="." instance=ExtResource("14_2wwcf")]
+
+[node name="Shop" parent="." instance=ExtResource("15_shop")]
+layer = 128

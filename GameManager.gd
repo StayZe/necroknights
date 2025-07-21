@@ -36,9 +36,10 @@ func setup_game_over_screen():
 func start_game():
 	print("🎮 Démarrage du jeu...")
 	
-	# Réinitialiser les pièces
-	coins = 0
+	# Donner des pièces de départ pour tester le shop
+	coins = 1000  # Au lieu de 0
 	coins_changed.emit(coins)
+	print("💰 Pièces de départ: ", coins)
 	
 	# Vérifier que le WaveManager existe
 	if not get_node_or_null("/root/WaveManager"):
