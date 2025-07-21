@@ -29,6 +29,9 @@ func _ready():
 	# Attendre une frame pour que la position soit bien définie
 	await get_tree().process_frame
 	
+	# Ajouter le boost au groupe des drops pour le nettoyage automatique
+	add_to_group("drops")
+	
 	# Connecter le signal d'entrée dans la zone de récupération
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
@@ -43,7 +46,7 @@ func _ready():
 	# Configurer l'apparence selon le type de boost
 	setup_boost_appearance()
 	
-	# Ajouter au groupe des boosts
+	# Ajouter au groupe des boosts (garder pour compatibilité)
 	add_to_group("boosts")
 
 func setup_boost_sounds():

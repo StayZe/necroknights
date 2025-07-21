@@ -137,6 +137,9 @@ func start_next_wave():
 		print("Erreur: Aucun spawner valide!")
 		return
 	
+	# Nettoyer tous les drops au sol avant de commencer la nouvelle manche
+	cleanup_drops_on_ground()
+	
 	current_wave += 1
 	
 	# Jouer le son de début de manche
@@ -330,3 +333,25 @@ func get_game_stats() -> Dictionary:
 		"current_wave": current_wave,
 		"max_wave_record": max_wave_completed
 	} 
+
+# Nettoyer tous les drops (pièces et bonus) qui traînent au sol
+func cleanup_drops_on_ground():
+	var drops = get_tree().get_nodes_in_group("drops")
+	var drops_count = drops.size()
+	
+	if drops_count > 0:
+		print("🧹 Nettoyage de " + str(drops_count) + " drops au sol avant la manche " + str(current_wave + 1))
+		
+		for drop in drops:
+			if is_instance_valid(drop):
+				# Créer un petit effet de disparition pour que ce soit visuel
+				var tween = drop.create_tween()
+				tween.parallel().tween_property(drop, "scale", Vector2(0.5, 0.5), 0.3)
+				tween.parallel().tween_property(drop, "modulate:a", 0.0, 0.3)
+				
+				# Supprimer le drop après l'effet
+				tween.finished.connect(drop.queue_free)
+		
+		print("✨ Drops nettoyés - Place nette pour la nouvelle manche !")
+	else:
+		print("✅ Aucun drop à nettoyer") 
