@@ -18709,6 +18709,7 @@ tile_map_data = PackedByteArray("AAAZAAkAAAAAAAoAAAAZAAoAAAAAAAsAAAAaAAkAAAABAAo
 tile_set = SubResource("TileSet_606se")
 
 [node name="ForestZone" type="Area2D" parent="."]
+visible = false
 position = Vector2(1148.01, -32)
 scale = Vector2(70, 50)
 skew = -0.221657

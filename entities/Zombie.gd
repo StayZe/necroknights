@@ -186,18 +186,14 @@ func drop_coins():
 	# Stocker la position du zombie avant sa suppression
 	var zombie_position = global_position
 	
-	# Créer et placer les pièces
+	# Créer et placer les pièces à des positions valides
 	for i in range(coins_to_drop):
 		var coin = coin_scene.instantiate()
 		if not coin:
 			continue
 		
-		# Position aléatoire autour du zombie
-		var offset = Vector2(
-			randf_range(-50, 50),
-			randf_range(-50, 50)
-		)
-		var coin_position = zombie_position + offset
+		# Trouver une position valide pour la pièce
+		var coin_position = find_valid_drop_position(zombie_position, 60.0)
 		
 		# Ajouter la pièce à la scène d'abord
 		scene_root.add_child(coin)
@@ -246,18 +242,75 @@ func drop_boost():
 			boost.boost_type = BoostItem.BoostType.SPEED_BOOST
 			print("⚡ Boost de vitesse droppé !")
 	
-	# Position aléatoire autour du zombie
-	var offset = Vector2(
-		randf_range(-30, 30),
-		randf_range(-30, 30)
-	)
-	var boost_position = global_position + offset
+	# Trouver une position valide pour le boost
+	var boost_position = find_valid_drop_position(global_position, 50.0)
 	
 	# Ajouter le boost à la scène
 	scene_root.add_child(boost)
 	
 	# Définir la position après l'ajout à la scène
 	boost.global_position = boost_position
+
+# Trouve une position valide pour dropper un item (pièce ou boost)
+func find_valid_drop_position(center_position: Vector2, max_radius: float = 60.0) -> Vector2:
+	var max_attempts = 25  # Nombre maximum de tentatives pour les drops
+	
+	for attempt in range(max_attempts):
+		# Générer une position candidate dans un rayon autour du centre
+		var angle = randf() * 2.0 * PI
+		var distance = randf_range(15.0, max_radius)  # Minimum 15 pixels du centre
+		
+		var candidate_position = center_position + Vector2(
+			cos(angle) * distance,
+			sin(angle) * distance
+		)
+		
+		# Vérifier si cette position est valide pour un drop
+		if is_position_drop_valid(candidate_position):
+			return candidate_position
+	
+	# Si aucune position valide trouvée, retourner une position proche du centre
+	print("⚠️ Aucune position de drop idéale trouvée, utilisation de la position de fallback")
+	return center_position + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+
+# Vérifie si une position est valide pour dropper un item
+func is_position_drop_valid(position: Vector2) -> bool:
+	var space_state = get_world_2d().direct_space_state
+	
+	# Créer une forme de test plus petite pour les items
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 8.0  # Plus petit rayon pour les items
+	query.shape = shape
+	query.transform = Transform2D(0, position)
+	
+	# Vérifier les collisions avec les obstacles
+	query.collision_mask = 1  # Layer des murs et obstacles
+	
+	var results = space_state.intersect_shape(query)
+	
+	# Si on détecte des collisions, la position n'est pas valide
+	if not results.is_empty():
+		return false
+	
+	# Test rapide avec un raycast vers le bas pour s'assurer qu'on est sur le sol
+	var ground_check = PhysicsRayQueryParameters2D.create(
+		position + Vector2(0, -5),  # Un peu au-dessus
+		position + Vector2(0, 15),   # Un peu en-dessous
+		1  # Layer des murs/sol
+	)
+	
+	var ground_result = space_state.intersect_ray(ground_check)
+	# On veut qu'il y ait quelque chose (le sol) pas trop loin en dessous
+	if ground_result.is_empty():
+		var hit_distance = 20.0  # Distance par défaut si pas de collision
+	else:
+		var hit_distance = position.distance_to(ground_result.position)
+		# Si le sol est trop loin (plus de 30 pixels), ce n'est pas idéal
+		if hit_distance > 30.0:
+			return false
+	
+	return true
 
 func update_health_display():
 	if health_label:
