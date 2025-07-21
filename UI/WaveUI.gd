@@ -9,6 +9,7 @@ class_name WaveUI
 @onready var health_bar = $UI/HealthBar
 @onready var shield_bar = $UI/ShieldBar
 @onready var weapon_inventory = $UI/WeaponInventory
+@onready var bonus_inventory = $UI/BonusInventory
 
 var current_wave_active = false
 
@@ -54,6 +55,18 @@ func update_weapon_inventory(slot1_weapon: String, slot2_weapon: String, active_
 	if weapon_inventory:
 		weapon_inventory.update_inventory(slot1_weapon, slot2_weapon, active_slot)
 
+# Fonction pour mettre à jour l'inventaire de bonus
+func add_bonus_to_inventory(bonus_type: String) -> bool:
+	if bonus_inventory:
+		return bonus_inventory.add_bonus_to_slot(bonus_type)
+	return false
+
+# Fonction pour utiliser un bonus de l'inventaire
+func use_bonus_from_inventory(slot_number: int) -> String:
+	if bonus_inventory:
+		return bonus_inventory.use_bonus_in_slot(slot_number)
+	return ""
+
 func _on_coins_changed(new_amount: int):
 	if coins_label:
 		coins_label.text = "💰 Pièces: " + str(new_amount)
@@ -73,11 +86,11 @@ func _on_wave_completed(wave_number: int):
 	current_wave_active = false
 
 func _on_wave_break_started(time_left: float):
-	pause_timer.text = "Pause: " + str(int(time_left)) + "s\nSanté régénérée!"
+	pause_timer.text = "Pause: " + str(int(time_left)) + "s\nSanté régénérée!\n\n🏪 Appuyez sur B pour ouvrir le shop"
 	pause_timer.visible = true
 
 func _on_wave_break_updated(time_left: int):
-	pause_timer.text = "Pause: " + str(time_left) + "s\nSanté régénérée!"
+	pause_timer.text = "Pause: " + str(time_left) + "s\nSanté régénérée!\n\n🏪 Appuyez sur B pour ouvrir le shop"
 
 func _update_record_display():
 	if WaveManager:

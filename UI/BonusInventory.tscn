@@ -1,0 +1,158 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4qkdml3wx2r"]
+
+[ext_resource type="Script" path="res://UI/BonusInventory.gd" id="1_bonus_inventory"]
+
+[node name="BonusInventory" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_bonus_inventory")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 390.0
+offset_top = 20.0
+offset_right = 570.0
+offset_bottom = 80.0
+theme_override_constants/separation = 10
+
+[node name="Slot1" type="Panel" parent="HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Border" type="NinePatchRect" parent="HBoxContainer/Slot1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+modulate = Color(1, 1, 1, 1)
+
+[node name="BonusIcon" type="TextureRect" parent="HBoxContainer/Slot1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="KeyLabel" type="Label" parent="HBoxContainer/Slot1"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -20.0
+offset_right = 0.0
+offset_bottom = 0.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "\""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot2" type="Panel" parent="HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Border" type="NinePatchRect" parent="HBoxContainer/Slot2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+modulate = Color(1, 1, 1, 1)
+
+[node name="BonusIcon" type="TextureRect" parent="HBoxContainer/Slot2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="KeyLabel" type="Label" parent="HBoxContainer/Slot2"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -20.0
+offset_right = 0.0
+offset_bottom = 0.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "'"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot3" type="Panel" parent="HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Border" type="NinePatchRect" parent="HBoxContainer/Slot3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+modulate = Color(1, 1, 1, 1)
+
+[node name="BonusIcon" type="TextureRect" parent="HBoxContainer/Slot3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="KeyLabel" type="Label" parent="HBoxContainer/Slot3"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -20.0
+offset_right = 0.0
+offset_bottom = 0.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "("
+horizontal_alignment = 1
+vertical_alignment = 1 

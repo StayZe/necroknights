@@ -85,12 +85,16 @@ func connect_shop_buttons():
 
 # Utiliser _input au lieu de _unhandled_input pour avoir la priorité
 func _input(event):
-	# Seule la touche B ouvre le shop
+	# Seule la touche B ouvre le shop - MAIS SEULEMENT EN INTER-MANCHE
 	if event is InputEventKey and event.pressed:
 		if event.keycode == 66 or event.physical_keycode == 66:  # B
-			print("🏪 Touche B détectée - Ouverture du shop")
-			get_viewport().set_input_as_handled()
-			toggle_shop()
+			# Vérifier si on est en inter-manche
+			if WaveManager and WaveManager.is_on_break:
+				print("🏪 Touche B détectée - Ouverture du shop")
+				get_viewport().set_input_as_handled()
+				toggle_shop()
+			else:
+				print("🏪 Shop fermé - Accessible seulement en inter-manche")
 			return
 	
 	# Fermeture avec Escape si le shop est ouvert
@@ -110,6 +114,11 @@ func toggle_shop():
 
 func open_shop():
 	print("🏪 Ouverture du shop...")
+	
+	# Vérifier si on est en inter-manche
+	if not WaveManager or not WaveManager.is_on_break:
+		print("🏪 ÉCHEC: Shop accessible seulement en inter-manche")
+		return
 	
 	# Vérifier si le jeu est déjà en pause (menu pause ouvert)
 	if get_tree().paused:
@@ -167,12 +176,29 @@ func buy_item(item_type: String):
 		print("🏪 Pas assez de pièces pour acheter ", item_type, " (Prix: ", price, ", Pièces: ", GameManager.get_coins(), ")")
 		return
 	
-	# Déduire le coût
-	GameManager.add_coins(-price)
-	print("🏪 Achat de ", item_type, " pour ", price, " pièces!")
-	
-	# Appliquer l'effet de l'objet
-	apply_item_effect(item_type)
+	# Vérifier si c'est un bonus et si l'inventaire a de la place
+	if is_bonus_item(item_type):
+		var player = get_player()
+		if not player:
+			print("🏪 Erreur: Joueur non trouvé pour ajouter le bonus")
+			return
+		
+		# Essayer d'ajouter le bonus à l'inventaire
+		if not player.add_bonus_to_inventory(item_type):
+			print("🏪 ÉCHEC: Inventaire de bonus plein pour ", item_type)
+			return
+		
+		# Déduire le coût seulement si le bonus a été ajouté
+		GameManager.add_coins(-price)
+		print("🏪 Achat de ", item_type, " pour ", price, " pièces! Ajouté à l'inventaire de bonus.")
+	else:
+		# Pour les autres objets (pas des bonus), appliquer l'effet immédiatement
+		GameManager.add_coins(-price)
+		print("🏪 Achat de ", item_type, " pour ", price, " pièces!")
+		apply_item_effect(item_type)
+
+func is_bonus_item(item_type: String) -> bool:
+	return item_type in ["atomic_bomb", "medical_kit", "skull", "speed_boost", "shield_small", "shield_large"]
 
 func buy_weapon(weapon_type: String):
 	var price = item_prices.get(weapon_type, 0)

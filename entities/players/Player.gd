@@ -22,6 +22,11 @@ var shield: float = 0.0  # Bouclier actuel
 var hurt_sound: AudioStreamPlayer2D
 var hurt_sounds: Array[AudioStream] = []
 
+# 📌 Sons de bonus
+var nuke_sound: AudioStreamPlayer2D
+var bandage_sound: AudioStreamPlayer2D
+var insta_kill_sound: AudioStreamPlayer2D
+
 # 📌 Gestion des armes
 @export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
 var current_weapon: Weapon = null  # Référence à l'arme actuelle
@@ -107,6 +112,14 @@ func _physics_process(delta):
 		switch_to_weapon_slot(1)
 	elif Input.is_action_just_pressed("weapon_slot_2"):
 		switch_to_weapon_slot(2)
+	
+	# 📌 Gestion des bonus avec les touches ", ' et (
+	if Input.is_action_just_pressed("bonus_slot_1"):  # "
+		use_bonus_from_slot(1)
+	elif Input.is_action_just_pressed("bonus_slot_2"):  # '
+		use_bonus_from_slot(2)
+	elif Input.is_action_just_pressed("bonus_slot_3"):  # (
+		use_bonus_from_slot(3)
 	
 	if current_weapon:
 		handle_weapon()
@@ -559,6 +572,28 @@ func setup_hurt_sounds():
 			print("Son de dégâts chargé: " + sound_path)
 		else:
 			print("Erreur: Impossible de charger le son: " + sound_path)
+	
+	# Configurer les sons de bonus
+	setup_bonus_sounds()
+
+func setup_bonus_sounds():
+	# Son de la bombe atomique
+	nuke_sound = AudioStreamPlayer2D.new()
+	add_child(nuke_sound)
+	nuke_sound.stream = preload("res://songs/nuke-sound.wav")
+	nuke_sound.volume_db = -3  # Volume un peu fort pour l'impact
+	
+	# Son du kit de soin
+	bandage_sound = AudioStreamPlayer2D.new()
+	add_child(bandage_sound)
+	bandage_sound.stream = preload("res://songs/bandage-sound.wav")
+	bandage_sound.volume_db = -8  # Volume plus doux
+	
+	# Son de l'instant kill
+	insta_kill_sound = AudioStreamPlayer2D.new()
+	add_child(insta_kill_sound)
+	insta_kill_sound.stream = preload("res://songs/insta-kill-sound.wav")
+	insta_kill_sound.volume_db = -5  # Volume modéré
 
 func play_random_hurt_sound():
 	if hurt_sounds.size() == 0 or not hurt_sound:
@@ -573,3 +608,98 @@ func play_random_hurt_sound():
 	hurt_sound.stream = hurt_sounds[random_index]
 	hurt_sound.play()
 	print("Son de dégâts joué: human-hurt-song-" + str(random_index + 1))
+
+# 📌 Fonction pour ajouter un bonus à l'inventaire
+func add_bonus_to_inventory(bonus_type: String) -> bool:
+	# Trouver la WaveUI et ajouter le bonus à l'inventaire
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("add_bonus_to_inventory"):
+		var success = wave_ui.add_bonus_to_inventory(bonus_type)
+		if success:
+			print("🎁 Bonus ", bonus_type, " ajouté à l'inventaire")
+		else:
+			print("🎁 ÉCHEC: Inventaire de bonus plein")
+		return success
+	else:
+		print("⚠️ WaveUI non trouvée pour ajouter le bonus")
+		return false
+
+# 📌 Fonction pour utiliser un bonus depuis l'inventaire
+func use_bonus_from_slot(slot_number: int):
+	# Trouver la WaveUI et utiliser le bonus
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("use_bonus_from_inventory"):
+		var bonus_type = wave_ui.use_bonus_from_inventory(slot_number)
+		if bonus_type != "":
+			print("🎁 Utilisation du bonus ", bonus_type, " du slot ", slot_number)
+			apply_bonus_effect(bonus_type)
+		else:
+			print("🎁 Slot ", slot_number, " vide")
+	else:
+		print("⚠️ WaveUI non trouvée pour utiliser le bonus")
+
+# 📌 Fonction pour appliquer l'effet d'un bonus
+func apply_bonus_effect(bonus_type: String):
+	match bonus_type:
+		"atomic_bomb":
+			# Jouer le son de la bombe atomique
+			if nuke_sound:
+				nuke_sound.play()
+			# Tuer tous les zombies
+			var zombies = get_tree().get_nodes_in_group("enemy")
+			for zombie in zombies:
+				if zombie.has_method("take_damage"):
+					zombie.take_damage(9999)
+			print("💣 Bombe atomique utilisée! Tous les zombies sont morts!")
+			
+		"medical_kit":
+			# Jouer le son du kit médical
+			if bandage_sound:
+				bandage_sound.play()
+			# Soigner le joueur complètement
+			if has_method("heal_to_full"):
+				heal_to_full()
+			else:
+				health = max_health
+				update_health_display()
+			print("🏥 Kit médical utilisé! Santé restaurée à 100%!")
+			
+		"skull":
+			# Jouer le son du boost de crâne
+			if insta_kill_sound:
+				insta_kill_sound.play()
+			# Boost de dégâts pour one-shot kill
+			if has_method("apply_damage_boost"):
+				apply_damage_boost(9999, 30.0)
+			print("💀 Boost de crâne activé! Dégâts énormes pendant 30 secondes!")
+			
+		"speed_boost":
+			# Pas de son spécifique pour le speed boost pour l'instant
+			# Boost de vitesse
+			if has_method("apply_speed_boost"):
+				apply_speed_boost(1.5, 30.0)
+			print("⚡ Boost de vitesse activé! +50% de vitesse pendant 30 secondes!")
+			
+		"shield_small":
+			# Pas de son spécifique pour le bouclier pour l'instant
+			# Ajouter 50 HP de bouclier
+			if has_method("add_shield"):
+				add_shield(50)
+			else:
+				print("🏪 Erreur: Le joueur n'a pas la méthode add_shield")
+			print("🛡️ Petit bouclier utilisé! +50 HP de bouclier")
+			
+		"shield_large":
+			# Pas de son spécifique pour le bouclier pour l'instant
+			# Ajouter 100 HP de bouclier
+			if has_method("add_shield"):
+				add_shield(100)
+			else:
+				print("🏪 Erreur: Le joueur n'a pas la méthode add_shield")
+			print("🛡️ Grand bouclier utilisé! +100 HP de bouclier")
