@@ -18773,6 +18773,7 @@ visible = false
 position = Vector2(30, 0)
 
 [node name="WeaponPickupsTest" parent="." instance=ExtResource("6_2hs0m")]
+visible = false
 position = Vector2(531, 396)
 
 [node name="WaveUI" parent="." instance=ExtResource("12_0t07s")]

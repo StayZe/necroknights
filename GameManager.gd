@@ -36,8 +36,8 @@ func setup_game_over_screen():
 func start_game():
 	print("🎮 Démarrage du jeu...")
 	
-	# Donner des pièces de départ pour tester le shop
-	coins = 1000  # Au lieu de 0
+	# Pièces temporaires pour tester le bouclier
+	coins = 0  # Changé temporairement pour les tests
 	coins_changed.emit(coins)
 	print("💰 Pièces de départ: ", coins)
 	

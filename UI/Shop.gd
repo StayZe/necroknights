@@ -20,15 +20,15 @@ var close_button  # Sera initialisé dans _ready() avec get_node_or_null
 
 # Prix des éléments
 var item_prices = {
-	"atomic_bomb": 200,
-	"medical_kit": 75,
-	"skull": 150,
-	"speed_boost": 100,
-	"pistol": 50,
-	"rifle": 250,
-	"sniper": 500,
-	"shield_small": 250,
-	"shield_large": 500
+	"atomic_bomb": 80,      # Réduit de 200 → 80 (accessible dès manche 3-4)
+	"medical_kit": 35,      # Réduit de 75 → 35 (accessible dès manche 2)
+	"skull": 60,            # Réduit de 150 → 60 (accessible dès manche 3)
+	"speed_boost": 45,      # Réduit de 100 → 45 (accessible dès manche 2-3)
+	"pistol": 25,           # Réduit de 50 → 25 (accessible dès manche 1-2)
+	"rifle": 120,           # Réduit de 250 → 120 (accessible dès manche 5-6)
+	"sniper": 200,          # Réduit de 500 → 200 (accessible dès manche 8-10)
+	"shield_small": 90,     # Réduit de 250 → 90 (accessible dès manche 4-5)
+	"shield_large": 150     # Réduit de 500 → 150 (accessible dès manche 6-8)
 }
 
 func _ready():
@@ -48,6 +48,9 @@ func _ready():
 	
 	# Connecter tous les boutons du shop
 	connect_shop_buttons()
+	
+	# Configurer les infobulles
+	setup_tooltips()
 	
 	# Mettre à jour l'affichage des pièces
 	if GameManager:
@@ -225,18 +228,20 @@ func apply_item_effect(item_type: String):
 			print("⚡ Boost de vitesse activé! +50% de vitesse pendant 30 secondes!")
 			
 		"shield_small":
-			# Ajouter 50 HP (shield petit)
-			player.health = min(player.max_health + 50, player.max_health + 100)
-			player.max_health = min(player.max_health + 50, 200)  # Limiter à 200 HP max
-			player.update_health_display()
-			print("🛡️ Bouclier petit utilisé! +50 HP (max 200)")
+			# Ajouter 50 HP de bouclier
+			if player.has_method("add_shield"):
+				player.add_shield(50)
+			else:
+				print("🏪 Erreur: Le joueur n'a pas la méthode add_shield")
+			print("🛡️ Petit bouclier utilisé! +50 HP de bouclier")
 			
 		"shield_large":
-			# Ajouter 100 HP (shield grand)
-			player.health = min(player.max_health + 100, player.max_health + 200)
-			player.max_health = min(player.max_health + 100, 300)  # Limiter à 300 HP max
-			player.update_health_display()
-			print("🛡️ Bouclier grand utilisé! +100 HP (max 300)")
+			# Ajouter 100 HP de bouclier
+			if player.has_method("add_shield"):
+				player.add_shield(100)
+			else:
+				print("🏪 Erreur: Le joueur n'a pas la méthode add_shield")
+			print("🛡️ Grand bouclier utilisé! +100 HP de bouclier")
 
 func give_weapon_to_player(weapon_type: String):
 	var player = get_player()
@@ -290,3 +295,32 @@ func is_game_over_screen_visible() -> bool:
 		return true
 	
 	return false 
+
+func setup_tooltips():
+	# Configurer les infobulles pour chaque bouton du shop
+	if atomic_bomb_button:
+		atomic_bomb_button.tooltip_text = "Bombe Atomique - 200 pièces\nTue instantanément tous les zombies présents sur la carte."
+	
+	if medical_kit_button:
+		medical_kit_button.tooltip_text = "Kit Médical - 75 pièces\nRestaure complètement votre santé à 100%."
+	
+	if skull_button:
+		skull_button.tooltip_text = "Boost de Crâne - 150 pièces\nAugmente massivement vos dégâts pendant 30 secondes."
+	
+	if speed_boost_button:
+		speed_boost_button.tooltip_text = "Boost de Vitesse - 100 pièces\nAugmente votre vitesse de déplacement de 50% pendant 30 secondes."
+	
+	if pistol_button:
+		pistol_button.tooltip_text = "Pistolet - 50 pièces\nArme rapide avec un bon taux de tir et des munitions modérées."
+	
+	if rifle_button:
+		rifle_button.tooltip_text = "Fusil d'Assaut - 250 pièces\nArme automatique avec un taux de tir élevé et beaucoup de munitions."
+	
+	if sniper_button:
+		sniper_button.tooltip_text = "Fusil de Sniper - 500 pièces\nArme de précision avec des dégâts élevés mais un tir plus lent."
+	
+	if shield_button1:
+		shield_button1.tooltip_text = "Petit Bouclier - 250 pièces\nAjoute 50 HP de bouclier. Le bouclier absorbe les dégâts avant la santé."
+	
+	if shield_button2:
+		shield_button2.tooltip_text = "Grand Bouclier - 500 pièces\nAjoute 100 HP de bouclier. Le bouclier absorbe les dégâts avant la santé." 

@@ -14,6 +14,10 @@ var health: float = max_health
 var is_invulnerable: bool = false
 var invulnerability_time: float = 0.5  # Temps d'invulnérabilité après avoir pris des dégâts
 
+# 📌 Variables de bouclier
+@export var max_shield: float = 0.0  # Par défaut, pas de bouclier
+var shield: float = 0.0  # Bouclier actuel
+
 # 📌 Son de dégâts
 var hurt_sound: AudioStreamPlayer2D
 var hurt_sounds: Array[AudioStream] = []
@@ -55,6 +59,11 @@ func _ready():
 	health = max_health
 	update_health_display()
 	
+	# Initialiser le bouclier
+	shield = 0.0
+	max_shield = 0.0
+	update_shield_display()
+	
 	# Créer les timers pour les boosts
 	create_boost_timers()
 	
@@ -73,6 +82,10 @@ func _ready():
 	# Initialiser l'inventaire d'armes après un délai pour que l'UI soit chargée
 	await get_tree().create_timer(0.1).timeout
 	update_weapon_inventory_display()
+	
+	# Donner un pistolet de départ au joueur
+	pickup_weapon_from_path("res://weapons/Pistol.tscn")
+	print("🔫 Pistolet de départ donné au joueur")
 
 func _physics_process(delta):
 	get_input()
@@ -375,6 +388,27 @@ func update_health_display():
 	else:
 		print("⚠️ WaveUI non trouvée pour mettre à jour la barre de santé")
 
+# 📌 Fonction pour mettre à jour l'affichage du bouclier
+func update_shield_display():
+	# Trouver la WaveUI et mettre à jour la barre de bouclier
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_shield_bar"):
+		wave_ui.update_shield_bar(shield, max_shield)
+		print("🛡️ Barre de bouclier mise à jour: " + str(shield) + "/" + str(max_shield))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour la barre de bouclier")
+
+# 📌 Fonctions pour gérer le bouclier
+func add_shield(shield_amount: int):
+	max_shield += shield_amount
+	shield = max_shield  # Le bouclier se remplit automatiquement
+	update_shield_display()
+	print("🛡️ Bouclier ajouté: +" + str(shield_amount) + " (Total: " + str(shield) + "/" + str(max_shield) + ")")
+
 # 📌 Fonction pour mettre à jour l'inventaire d'armes dans l'UI
 func update_weapon_inventory_display():
 	# Trouver la WaveUI et mettre à jour l'inventaire
@@ -397,21 +431,32 @@ func take_damage(damage_amount):
 		print("Joueur invulnérable!")
 		return
 	
-	health -= damage_amount
-	update_health_display()
+	# D'abord, vérifier si le dégât est absorbé par le bouclier
+	if shield > 0:
+		var absorbed_damage = min(damage_amount, shield)
+		shield -= absorbed_damage
+		damage_amount -= absorbed_damage
+		print("Bouclier a absorbé " + str(absorbed_damage) + " dégâts. Bouclier restant: " + str(shield))
+		update_shield_display()
 	
-	# Jouer un son de dégâts aléatoire
-	play_random_hurt_sound()
-	
-	# Animation de dégâts
-	sprite.modulate = Color(1, 0.3, 0.3, 1)  # Teinte rouge
+	# Si il reste des dégâts après le bouclier, les appliquer à la santé
+	if damage_amount > 0:
+		health -= damage_amount
+		update_health_display()
+		print("Santé réduite de " + str(damage_amount) + ". Santé restante: " + str(health))
+		
+		# Jouer un son de dégâts aléatoire
+		play_random_hurt_sound()
+		
+		# Animation de dégâts
+		sprite.modulate = Color(1, 0.3, 0.3, 1)  # Teinte rouge
+		
+		# Vérifier si le joueur est mort
+		if health <= 0:
+			die()
 	
 	# Période d'invulnérabilité
 	is_invulnerable = true
-	
-	# Vérifier si le joueur est mort
-	if health <= 0:
-		die()
 	
 	# Timer pour supprimer l'invulnérabilité
 	await get_tree().create_timer(invulnerability_time).timeout
@@ -434,7 +479,7 @@ func die():
 func heal_to_full():
 	health = max_health
 	update_health_display()
-	print("🏥 Vie restaurée à 100% !")
+	print("🏥 Vie restaurée à 100% ! (Le bouclier n'est pas affecté)")
 
 func apply_damage_boost(multiplier: float, duration: float):
 	damage_boost_multiplier = multiplier

@@ -7,6 +7,7 @@ class_name WaveUI
 @onready var coins_label = $UI/WaveInfo/CoinsLabel
 @onready var pause_timer = $UI/PauseTimer
 @onready var health_bar = $UI/HealthBar
+@onready var shield_bar = $UI/ShieldBar
 @onready var weapon_inventory = $UI/WeaponInventory
 
 var current_wave_active = false
@@ -42,6 +43,11 @@ func _process(_delta):
 func update_health_bar(health: float, max_health: float):
 	if health_bar:
 		health_bar.update_health(health, max_health)
+
+# Fonction pour mettre à jour la barre de bouclier
+func update_shield_bar(shield: float, max_shield: float):
+	if shield_bar:
+		shield_bar.update_shield(shield, max_shield)
 
 # Fonction pour mettre à jour l'inventaire d'armes
 func update_weapon_inventory(slot1_weapon: String, slot2_weapon: String, active_slot: int):

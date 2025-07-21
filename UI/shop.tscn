@@ -468,7 +468,7 @@ offset_right = 1361.0
 offset_bottom = 780.0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 36
-text = "142"
+text = "0"
 horizontal_alignment = 2
 vertical_alignment = 1
 
@@ -495,7 +495,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 18
-text = "200"
+text = "80"
 horizontal_alignment = 2
 
 [node name="MedicalKitButton" type="Button" parent="ShopUI"]
@@ -521,7 +521,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 18
-text = "75"
+text = "35"
 horizontal_alignment = 2
 
 [node name="SkullButton" type="Button" parent="ShopUI"]
@@ -547,7 +547,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 18
-text = "150"
+text = "60"
 horizontal_alignment = 2
 
 [node name="SpeedBoostButton" type="Button" parent="ShopUI"]
@@ -573,7 +573,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 18
-text = "100"
+text = "45"
 horizontal_alignment = 2
 
 [node name="PistolButton" type="Button" parent="ShopUI"]
@@ -599,7 +599,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 16
-text = "50"
+text = "25"
 horizontal_alignment = 2
 
 [node name="RifleButton" type="Button" parent="ShopUI"]
@@ -625,7 +625,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 16
-text = "250"
+text = "120"
 horizontal_alignment = 2
 
 [node name="SniperButton" type="Button" parent="ShopUI"]
@@ -651,7 +651,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 16
-text = "500"
+text = "200"
 horizontal_alignment = 2
 
 [node name="ShieldButton1" type="Button" parent="ShopUI"]
@@ -677,7 +677,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 16
-text = "250"
+text = "90"
 horizontal_alignment = 2
 
 [node name="HPLabel" type="Label" parent="ShopUI/ShieldButton1"]
@@ -720,7 +720,7 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_74fni")
 theme_override_font_sizes/font_size = 16
-text = "500"
+text = "150"
 horizontal_alignment = 2
 
 [node name="HPLabel" type="Label" parent="ShopUI/ShieldButton2"]
