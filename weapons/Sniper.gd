@@ -18,7 +18,7 @@ var player_direction = "right"  # Direction du joueur (right, left, up, down)
 var shoot_sound: AudioStreamPlayer2D
 
 func _ready():
-	fire_rate = 0.8  # Tir plus lent que le pistol
+	fire_rate = 1.5  
 	reload_time = 2.0  # Temps de recharge plus long
 	ammo = 8
 	max_ammo = 8
@@ -43,7 +43,7 @@ func _ready():
 	# Créer et configurer le son de tir
 	shoot_sound = AudioStreamPlayer2D.new()
 	add_child(shoot_sound)
-	shoot_sound.stream = preload("res://songs/pistol-gun-sound.wav")  # Temporairement utiliser le son du pistolet
+	shoot_sound.stream = preload("res://songs/sniper-gun-sound.wav")  
 	shoot_sound.volume_db = -3  # Volume un peu plus fort pour différencier
 	
 	# Appeler le _ready() parent pour initialiser le son de rechargement
