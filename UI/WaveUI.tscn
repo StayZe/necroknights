@@ -1,8 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://bwq8h8v7yxmqr"]
+[gd_scene load_steps=9 format=3 uid="uid://bwq8h8v7yxmqr"]
 
 [ext_resource type="Script" path="res://UI/WaveUI.gd" id="1_8k4qh"]
 [ext_resource type="PackedScene" uid="uid://bvq2h7k3xmq1r" path="res://UI/health_bar/HealthBar.tscn" id="2_health_bar"]
-[ext_resource type="PackedScene" uid="uid://b3qkdml2wx1r" path="res://UI/WeaponInventory.tscn" id="3_weapon_inventory"]
+[ext_resource type="PackedScene" uid="uid://cqp8h4k8xmq1r" path="res://UI/health_bar/ShieldBar.tscn" id="3_shield_bar"]
+[ext_resource type="PackedScene" uid="uid://b3qkdml2wx1r" path="res://UI/WeaponInventory.tscn" id="4_weapon_inventory"]
+[ext_resource type="PackedScene" uid="uid://b4qkdml3wx2r" path="res://UI/BonusInventory.tscn" id="5_bonus_inventory"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_1"]
 font_size = 24
@@ -42,7 +44,13 @@ mouse_filter = 2
 [node name="HealthBar" parent="UI" instance=ExtResource("2_health_bar")]
 layout_mode = 1
 
-[node name="WeaponInventory" parent="UI" instance=ExtResource("3_weapon_inventory")]
+[node name="ShieldBar" parent="UI" instance=ExtResource("3_shield_bar")]
+layout_mode = 1
+
+[node name="WeaponInventory" parent="UI" instance=ExtResource("4_weapon_inventory")]
+layout_mode = 1
+
+[node name="BonusInventory" parent="UI" instance=ExtResource("5_bonus_inventory")]
 layout_mode = 1
 
 [node name="WaveInfo" type="VBoxContainer" parent="UI"]

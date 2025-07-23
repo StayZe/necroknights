@@ -9,6 +9,9 @@ func _ready():
 	# Cacher l'écran au démarrage
 	visible = false
 	
+	# Ajouter au groupe game_over pour la détection par le shop
+	add_to_group("game_over")
+	
 	# Connecter le bouton de retour
 	if return_button:
 		return_button.pressed.connect(_on_return_button_pressed)

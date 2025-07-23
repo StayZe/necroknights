@@ -106,22 +106,11 @@ func spawn_zombie():
 			var zombie = zombie_scene_to_spawn.instantiate()
 			get_parent().add_child(zombie)
 			
-			# Positionnement amélioré pour éviter les spawn sur les toits
-			var spawn_position = global_position
-			
-			# Si on a une référence au joueur, s'assurer de spawner à la même hauteur
-			if player:
-				spawn_position.y = player.global_position.y
-				# Ajouter une variation aléatoire autour du spawner mais à la bonne hauteur
-				var random_offset = Vector2(
-					randf_range(-50, 50),
-					randf_range(-20, 20)  # Petite variation verticale seulement
-				)
-				spawn_position += random_offset
-			
+			# Trouver une position de spawn valide
+			var spawn_position = find_valid_spawn_position()
 			zombie.global_position = spawn_position
 			
-			# S'assurer que le zombie a les mêmes propriétés de collision que le joueur
+			# Configurer les propriétés du zombie
 			if zombie is CharacterBody2D:
 				# Configurer les layers de collision comme le joueur
 				zombie.collision_layer = 4  # Layer 3 (Enemies)
@@ -129,21 +118,6 @@ func spawn_zombie():
 				
 				# Ajuster le z_index pour que les zombies apparaissent au bon niveau
 				zombie.z_index = 1  # Au-dessus de la map mais sous certains objets de décoration
-				
-				# Position de spawn simplifiée - juste éviter le spawning direct dans les murs
-				var space_state = zombie.get_world_2d().direct_space_state
-				var spawn_test_query = PhysicsRayQueryParameters2D.create(
-					spawn_position + Vector2(0, -16),
-					spawn_position + Vector2(0, 16),
-					1  # Seulement layer des murs
-				)
-				
-				var wall_check = space_state.intersect_ray(spawn_test_query)
-				
-				# Si on spawn dans un mur, décaler légèrement
-				if not wall_check.is_empty():
-					spawn_position += Vector2(randf_range(-40, 40), randf_range(-40, 40))
-					zombie.global_position = spawn_position
 			
 			spawned_zombies += 1
 			zombies_spawned_this_wave += 1
@@ -163,6 +137,81 @@ func spawn_zombie():
 				zombie_type = "Arabic"
 			
 			print("Zombie " + zombie_type + " spawné à " + str(spawn_position) + "! (" + str(zombies_spawned_this_wave) + "/" + str(zombies_quota_for_wave) + " pour la manche " + str(current_wave_number) + ")")
+
+# Trouve une position de spawn valide pour éviter les obstacles
+func find_valid_spawn_position() -> Vector2:
+	var base_position = global_position
+	
+	# Si on a une référence au joueur, utiliser sa hauteur comme référence
+	if player:
+		base_position.y = player.global_position.y
+	
+	var max_attempts = 50  # Nombre maximum de tentatives
+	var attempt_radius = 100.0  # Rayon de recherche initial
+	
+	for attempt in range(max_attempts):
+		# Générer une position candidate
+		var candidate_position = base_position + Vector2(
+			randf_range(-attempt_radius, attempt_radius),
+			randf_range(-attempt_radius * 0.5, attempt_radius * 0.5)  # Moins de variation verticale
+		)
+		
+		# Vérifier si cette position est valide
+		if is_position_spawn_valid(candidate_position):
+			return candidate_position
+		
+		# Augmenter le rayon de recherche pour les tentatives suivantes
+		if attempt % 10 == 9:  # Tous les 10 essais
+			attempt_radius += 50.0
+	
+	# Si aucune position valide trouvée, retourner la position de base avec un petit décalage
+	print("⚠️ Aucune position de spawn idéale trouvée pour le zombie, utilisation de la position de fallback")
+	return base_position + Vector2(randf_range(-30, 30), randf_range(-15, 15))
+
+# Vérifie si une position est valide pour le spawn (pas sur des obstacles)
+func is_position_spawn_valid(position: Vector2) -> bool:
+	var space_state = get_world_2d().direct_space_state
+	
+	# Créer une forme de test (petit cercle) pour vérifier les collisions
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 16.0  # Taille approximative d'un zombie
+	query.shape = shape
+	query.transform = Transform2D(0, position)
+	
+	# Vérifier les collisions avec TOUS les layers problématiques
+	# Layer 1 = Walls/Murs, et tous les autres éléments de décor ont leurs collisions
+	query.collision_mask = 1  # Layer des murs et obstacles
+	
+	var results = space_state.intersect_shape(query)
+	
+	# Si on détecte des collisions, la position n'est pas valide
+	if not results.is_empty():
+		return false
+	
+	# Vérification supplémentaire avec des raycasts dans plusieurs directions
+	var test_directions = [
+		Vector2.UP * 20,
+		Vector2.DOWN * 20,
+		Vector2.LEFT * 20,
+		Vector2.RIGHT * 20
+	]
+	
+	for direction in test_directions:
+		var ray_query = PhysicsRayQueryParameters2D.create(
+			position,
+			position + direction,
+			1  # Layer des murs
+		)
+		
+		var ray_result = space_state.intersect_ray(ray_query)
+		if not ray_result.is_empty():
+			# Si le raycast touche quelque chose de très près, ce n'est pas idéal
+			var hit_distance = position.distance_to(ray_result.position)
+			if hit_distance < 15.0:  # Trop proche d'un obstacle
+				return false
+	
+	return true
 
 func _on_zombie_died():
 	spawned_zombies -= 1

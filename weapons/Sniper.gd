@@ -223,4 +223,4 @@ func spawn_projectile(direction: Vector2):
 		if player is Player and projectile.has_method("set_player_reference"):
 			projectile.set_player_reference(player)
 
-# ... existing code ... 
+
