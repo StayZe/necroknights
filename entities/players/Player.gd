@@ -6,7 +6,6 @@ const SPEED = 100.0
 @onready var anim = $AnimationPlayer  # Assurez-vous qu'il correspond à votre noeud
 @onready var sprite = $sprite  # Ajout pour manipuler le sprite correctement
 @onready var last_direction = "walk_down"  # Mémorise la dernière direction
-@onready var health_label = $HealthLabel
 var player_facing_right = true  # Indique si le joueur regarde à droite ou à gauche
 
 # 📌 Variables de santé
@@ -15,9 +14,18 @@ var health: float = max_health
 var is_invulnerable: bool = false
 var invulnerability_time: float = 0.5  # Temps d'invulnérabilité après avoir pris des dégâts
 
+# 📌 Variables de bouclier
+@export var max_shield: float = 0.0  # Par défaut, pas de bouclier
+var shield: float = 0.0  # Bouclier actuel
+
 # 📌 Son de dégâts
 var hurt_sound: AudioStreamPlayer2D
 var hurt_sounds: Array[AudioStream] = []
+
+# 📌 Sons de bonus
+var nuke_sound: AudioStreamPlayer2D
+var bandage_sound: AudioStreamPlayer2D
+var insta_kill_sound: AudioStreamPlayer2D
 
 # 📌 Gestion des armes
 @export var weapon: NodePath  # L'arme actuelle du joueur (assignable dans l'inspecteur)
@@ -29,7 +37,7 @@ var weapon_slot_1: Weapon = null  # Arme dans le slot 1
 var weapon_slot_2: Weapon = null  # Arme dans le slot 2
 var weapon_slot_1_scene_path: String = ""  # Chemin de la scène de l'arme du slot 1
 var weapon_slot_2_scene_path: String = ""  # Chemin de la scène de l'arme du slot 2
-var active_weapon_slot: int = 0  # 0 = aucune arme, 1 = slot 1, 2 = slot 2
+var active_weapon_slot: int = 1  # 1 = slot 1, 2 = slot 2 (par défaut slot 1)
 
 # Pour stocker le chemin de la scène de l'arme originale
 var current_weapon_scene_path: String = ""
@@ -56,6 +64,11 @@ func _ready():
 	health = max_health
 	update_health_display()
 	
+	# Initialiser le bouclier
+	shield = 0.0
+	max_shield = 0.0
+	update_shield_display()
+	
 	# Créer les timers pour les boosts
 	create_boost_timers()
 	
@@ -70,6 +83,14 @@ func _ready():
 		current_weapon = get_node(weapon)
 	
 	print("Joueur initialisé - Santé: " + str(health) + " - Skin: " + str(PlayerSettings.selected_skin))
+	
+	# Initialiser l'inventaire d'armes après un délai pour que l'UI soit chargée
+	await get_tree().create_timer(0.1).timeout
+	update_weapon_inventory_display()
+	
+	# Donner un pistolet de départ au joueur
+	pickup_weapon_from_path("res://weapons/Pistol.tscn")
+	print("🔫 Pistolet de départ donné au joueur")
 
 func _physics_process(delta):
 	get_input()
@@ -91,6 +112,14 @@ func _physics_process(delta):
 		switch_to_weapon_slot(1)
 	elif Input.is_action_just_pressed("weapon_slot_2"):
 		switch_to_weapon_slot(2)
+	
+	# 📌 Gestion des bonus avec les touches ", ' et (
+	if Input.is_action_just_pressed("bonus_slot_1"):  # "
+		use_bonus_from_slot(1)
+	elif Input.is_action_just_pressed("bonus_slot_2"):  # '
+		use_bonus_from_slot(2)
+	elif Input.is_action_just_pressed("bonus_slot_3"):  # (
+		use_bonus_from_slot(3)
 	
 	if current_weapon:
 		handle_weapon()
@@ -120,31 +149,32 @@ func update_facing_direction():
 	var previous_facing = player_facing_right
 	player_facing_right = mouse_pos.x > global_position.x
 	
-	# Mettre à jour l'animation si la direction a changé
-	if anim and previous_facing != player_facing_right:
-		if player_facing_right:
-			last_direction = "walk-right"
-			anim.play("walk-right")
-		else:
-			last_direction = "walk-left"
-			anim.play("walk-left")
+	# L'orientation du personnage est TOUJOURS basée sur la direction de la souris
+	var direction_to_mouse = mouse_pos - global_position
 	
-	# Si le joueur se déplace (mais pas simplement en regardant), on priorise la direction haut/bas
-	if velocity.length() > 0 and anim:
-		if abs(velocity.y) > abs(velocity.x):
-			if velocity.y > 0:
-				last_direction = "walk-down"
-				anim.play("walk-down")
-			else:
-				last_direction = "walk-up"
-				anim.play("walk-up")
-		else:
-			if player_facing_right:
+	# Utiliser les composantes X et Y pour déterminer la direction principale
+	# CORRECTION: Les animations sont inversées dans l'AnimationPlayer, je compense
+	if anim:
+		if abs(direction_to_mouse.x) > abs(direction_to_mouse.y):
+			# Direction horizontale dominante
+			if direction_to_mouse.x > 0:
+				# Souris à droite du personnage
 				last_direction = "walk-right"
 				anim.play("walk-right")
 			else:
+				# Souris à gauche du personnage -> jouer walk-down car c'est ce qui s'affiche
+				last_direction = "walk-down"
+				anim.play("walk-down")
+		else:
+			# Direction verticale dominante
+			if direction_to_mouse.y > 0:
+				# Souris en bas du personnage -> jouer walk-left car c'est ce qui s'affiche 
 				last_direction = "walk-left"
 				anim.play("walk-left")
+			else:
+				# Souris en haut du personnage
+				last_direction = "walk-up"
+				anim.play("walk-up")
 	
 	# Ajuster la position de l'arme si nécessaire
 	if current_weapon:
@@ -253,6 +283,21 @@ func equip_weapon(new_weapon_scene: PackedScene):
 	# Si l'arme a une méthode pour configurer les sprites, l'appeler
 	if new_weapon.has_method("configure_sprites"):
 		new_weapon.configure_sprites()
+	
+	# Mettre à jour l'inventaire UI
+	update_weapon_inventory_display()
+
+# 📌 Fonction pour ramasser une arme à partir d'un chemin de fichier (utilisée par le shop)
+func pickup_weapon_from_path(weapon_path: String):
+	# Charger la scène d'arme depuis le chemin
+	var weapon_scene = load(weapon_path) as PackedScene
+	if not weapon_scene:
+		print("🏪 Erreur: Impossible de charger l'arme depuis: ", weapon_path)
+		return
+	
+	# Utiliser la méthode existante pour équiper l'arme
+	equip_weapon(weapon_scene)
+	print("🔫 Arme ramassée depuis le shop: ", weapon_path)
 
 # 📌 Fonction pour changer de slot d'arme actif
 func switch_to_weapon_slot(slot_number: int):
@@ -262,7 +307,7 @@ func switch_to_weapon_slot(slot_number: int):
 	# Réinitialiser l'état actuel
 	current_weapon = null
 	current_weapon_scene_path = ""
-	active_weapon_slot = 0
+	active_weapon_slot = slot_number
 	
 	# Activer l'arme du slot demandé
 	match slot_number:
@@ -270,16 +315,17 @@ func switch_to_weapon_slot(slot_number: int):
 			if weapon_slot_1:
 				current_weapon = weapon_slot_1
 				current_weapon_scene_path = weapon_slot_1_scene_path
-				active_weapon_slot = 1
 				current_weapon.visible = true
 				adjust_weapon_position()
 		2:
 			if weapon_slot_2:
 				current_weapon = weapon_slot_2
 				current_weapon_scene_path = weapon_slot_2_scene_path
-				active_weapon_slot = 2
 				current_weapon.visible = true
 				adjust_weapon_position()
+	
+	# Mettre à jour l'inventaire UI
+	update_weapon_inventory_display()
 
 # 📌 Fonction helper pour cacher toutes les armes
 func hide_all_weapons():
@@ -290,7 +336,7 @@ func hide_all_weapons():
 
 # 📌 Fonction pour déposer l'arme au sol
 func drop_current_weapon():
-	if not current_weapon or active_weapon_slot == 0:
+	if not current_weapon:
 		print("Aucune arme à déposer")
 		return
 		
@@ -325,15 +371,71 @@ func drop_current_weapon():
 		weapon_slot_2_scene_path = ""
 		print("Arme du slot 2 déposée")
 	
-	# Réinitialiser les références
+	# Réinitialiser les références de l'arme actuelle
 	current_weapon = null
 	current_weapon_scene_path = ""
-	active_weapon_slot = 0
+	
+	# Choisir le nouveau slot actif selon la disponibilité des armes
+	if active_weapon_slot == 1 and weapon_slot_2 != null:
+		# Si on a lâché le slot 1 et qu'il y a une arme dans le slot 2
+		switch_to_weapon_slot(2)
+	elif active_weapon_slot == 2 and weapon_slot_1 != null:
+		# Si on a lâché le slot 2 et qu'il y a une arme dans le slot 1
+		switch_to_weapon_slot(1)
+	else:
+		# Aucune arme disponible dans l'autre slot
+		# Garder le slot actuel mais vide, et forcer la mise à jour UI
+		print("🎒 Slot ", active_weapon_slot, " maintenant vide")
+		update_weapon_inventory_display()
 
 # 📌 Fonction pour mettre à jour l'affichage de la santé
 func update_health_display():
-	if health_label:
-		health_label.text = "HP: " + str(int(health))
+	# Trouver la WaveUI et mettre à jour la barre de santé
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_health_bar"):
+		wave_ui.update_health_bar(health, max_health)
+		print("🏥 Barre de santé mise à jour: " + str(health) + "/" + str(max_health))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour la barre de santé")
+
+# 📌 Fonction pour mettre à jour l'affichage du bouclier
+func update_shield_display():
+	# Trouver la WaveUI et mettre à jour la barre de bouclier
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_shield_bar"):
+		wave_ui.update_shield_bar(shield, max_shield)
+		print("🛡️ Barre de bouclier mise à jour: " + str(shield) + "/" + str(max_shield))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour la barre de bouclier")
+
+# 📌 Fonctions pour gérer le bouclier
+func add_shield(shield_amount: int):
+	max_shield += shield_amount
+	shield = max_shield  # Le bouclier se remplit automatiquement
+	update_shield_display()
+	print("🛡️ Bouclier ajouté: +" + str(shield_amount) + " (Total: " + str(shield) + "/" + str(max_shield) + ")")
+
+# 📌 Fonction pour mettre à jour l'inventaire d'armes dans l'UI
+func update_weapon_inventory_display():
+	# Trouver la WaveUI et mettre à jour l'inventaire
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		# Si pas trouvée par groupe, essayer par nom
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("update_weapon_inventory"):
+		wave_ui.update_weapon_inventory(weapon_slot_1_scene_path, weapon_slot_2_scene_path, active_weapon_slot)
+		print("🎒 Inventaire d'armes mis à jour - Slot actif: " + str(active_weapon_slot))
+	else:
+		print("⚠️ WaveUI non trouvée pour mettre à jour l'inventaire")
 
 # 📌 Fonction pour prendre des dégâts
 func take_damage(damage_amount):
@@ -343,21 +445,32 @@ func take_damage(damage_amount):
 		print("Joueur invulnérable!")
 		return
 	
-	health -= damage_amount
-	update_health_display()
+	# D'abord, vérifier si le dégât est absorbé par le bouclier
+	if shield > 0:
+		var absorbed_damage = min(damage_amount, shield)
+		shield -= absorbed_damage
+		damage_amount -= absorbed_damage
+		print("Bouclier a absorbé " + str(absorbed_damage) + " dégâts. Bouclier restant: " + str(shield))
+		update_shield_display()
 	
-	# Jouer un son de dégâts aléatoire
-	play_random_hurt_sound()
-	
-	# Animation de dégâts
-	sprite.modulate = Color(1, 0.3, 0.3, 1)  # Teinte rouge
+	# Si il reste des dégâts après le bouclier, les appliquer à la santé
+	if damage_amount > 0:
+		health -= damage_amount
+		update_health_display()
+		print("Santé réduite de " + str(damage_amount) + ". Santé restante: " + str(health))
+		
+		# Jouer un son de dégâts aléatoire
+		play_random_hurt_sound()
+		
+		# Animation de dégâts
+		sprite.modulate = Color(1, 0.3, 0.3, 1)  # Teinte rouge
+		
+		# Vérifier si le joueur est mort
+		if health <= 0:
+			die()
 	
 	# Période d'invulnérabilité
 	is_invulnerable = true
-	
-	# Vérifier si le joueur est mort
-	if health <= 0:
-		die()
 	
 	# Timer pour supprimer l'invulnérabilité
 	await get_tree().create_timer(invulnerability_time).timeout
@@ -380,7 +493,7 @@ func die():
 func heal_to_full():
 	health = max_health
 	update_health_display()
-	print("🏥 Vie restaurée à 100% !")
+	print("🏥 Vie restaurée à 100% ! (Le bouclier n'est pas affecté)")
 
 func apply_damage_boost(multiplier: float, duration: float):
 	damage_boost_multiplier = multiplier
@@ -460,6 +573,28 @@ func setup_hurt_sounds():
 			print("Son de dégâts chargé: " + sound_path)
 		else:
 			print("Erreur: Impossible de charger le son: " + sound_path)
+	
+	# Configurer les sons de bonus
+	setup_bonus_sounds()
+
+func setup_bonus_sounds():
+	# Son de la bombe atomique
+	nuke_sound = AudioStreamPlayer2D.new()
+	add_child(nuke_sound)
+	nuke_sound.stream = preload("res://songs/nuke-sound.wav")
+	nuke_sound.volume_db = -3  # Volume un peu fort pour l'impact
+	
+	# Son du kit de soin
+	bandage_sound = AudioStreamPlayer2D.new()
+	add_child(bandage_sound)
+	bandage_sound.stream = preload("res://songs/bandage-sound.wav")
+	bandage_sound.volume_db = -8  # Volume plus doux
+	
+	# Son de l'instant kill
+	insta_kill_sound = AudioStreamPlayer2D.new()
+	add_child(insta_kill_sound)
+	insta_kill_sound.stream = preload("res://songs/insta-kill-sound.wav")
+	insta_kill_sound.volume_db = -5  # Volume modéré
 
 func play_random_hurt_sound():
 	if hurt_sounds.size() == 0 or not hurt_sound:
@@ -474,3 +609,98 @@ func play_random_hurt_sound():
 	hurt_sound.stream = hurt_sounds[random_index]
 	hurt_sound.play()
 	print("Son de dégâts joué: human-hurt-song-" + str(random_index + 1))
+
+# 📌 Fonction pour ajouter un bonus à l'inventaire
+func add_bonus_to_inventory(bonus_type: String) -> bool:
+	# Trouver la WaveUI et ajouter le bonus à l'inventaire
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("add_bonus_to_inventory"):
+		var success = wave_ui.add_bonus_to_inventory(bonus_type)
+		if success:
+			print("🎁 Bonus ", bonus_type, " ajouté à l'inventaire")
+		else:
+			print("🎁 ÉCHEC: Inventaire de bonus plein")
+		return success
+	else:
+		print("⚠️ WaveUI non trouvée pour ajouter le bonus")
+		return false
+
+# 📌 Fonction pour utiliser un bonus depuis l'inventaire
+func use_bonus_from_slot(slot_number: int):
+	# Trouver la WaveUI et utiliser le bonus
+	var wave_ui = get_tree().get_first_node_in_group("wave_ui")
+	if not wave_ui:
+		wave_ui = get_node_or_null("/root/*/WaveUI")
+	
+	if wave_ui and wave_ui.has_method("use_bonus_from_inventory"):
+		var bonus_type = wave_ui.use_bonus_from_inventory(slot_number)
+		if bonus_type != "":
+			print("🎁 Utilisation du bonus ", bonus_type, " du slot ", slot_number)
+			apply_bonus_effect(bonus_type)
+		else:
+			print("🎁 Slot ", slot_number, " vide")
+	else:
+		print("⚠️ WaveUI non trouvée pour utiliser le bonus")
+
+# 📌 Fonction pour appliquer l'effet d'un bonus
+func apply_bonus_effect(bonus_type: String):
+	match bonus_type:
+		"atomic_bomb":
+			# Jouer le son de la bombe atomique
+			if nuke_sound:
+				nuke_sound.play()
+			# Tuer tous les zombies
+			var zombies = get_tree().get_nodes_in_group("enemy")
+			for zombie in zombies:
+				if zombie.has_method("take_damage"):
+					zombie.take_damage(9999)
+			print("💣 Bombe atomique utilisée! Tous les zombies sont morts!")
+			
+		"medical_kit":
+			# Jouer le son du kit médical
+			if bandage_sound:
+				bandage_sound.play()
+			# Soigner le joueur complètement
+			if has_method("heal_to_full"):
+				heal_to_full()
+			else:
+				health = max_health
+				update_health_display()
+			print("🏥 Kit médical utilisé! Santé restaurée à 100%!")
+			
+		"skull":
+			# Jouer le son du boost de crâne
+			if insta_kill_sound:
+				insta_kill_sound.play()
+			# Boost de dégâts pour one-shot kill
+			if has_method("apply_damage_boost"):
+				apply_damage_boost(9999, 30.0)
+			print("💀 Boost de crâne activé! Dégâts énormes pendant 30 secondes!")
+			
+		"speed_boost":
+			# Pas de son spécifique pour le speed boost pour l'instant
+			# Boost de vitesse
+			if has_method("apply_speed_boost"):
+				apply_speed_boost(1.5, 30.0)
+			print("⚡ Boost de vitesse activé! +50% de vitesse pendant 30 secondes!")
+			
+		"shield_small":
+			# Pas de son spécifique pour le bouclier pour l'instant
+			# Ajouter 50 HP de bouclier
+			if has_method("add_shield"):
+				add_shield(50)
+			else:
+				print("🏪 Erreur: Le joueur n'a pas la méthode add_shield")
+			print("🛡️ Petit bouclier utilisé! +50 HP de bouclier")
+			
+		"shield_large":
+			# Pas de son spécifique pour le bouclier pour l'instant
+			# Ajouter 100 HP de bouclier
+			if has_method("add_shield"):
+				add_shield(100)
+			else:
+				print("🏪 Erreur: Le joueur n'a pas la méthode add_shield")
+			print("🛡️ Grand bouclier utilisé! +100 HP de bouclier")

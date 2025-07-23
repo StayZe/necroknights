@@ -29,6 +29,9 @@ func _ready():
 	# Attendre une frame pour que la position soit bien définie
 	await get_tree().process_frame
 	
+	# Ajouter le boost au groupe des drops pour le nettoyage automatique
+	add_to_group("drops")
+	
 	# Connecter le signal d'entrée dans la zone de récupération
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
@@ -43,7 +46,7 @@ func _ready():
 	# Configurer l'apparence selon le type de boost
 	setup_boost_appearance()
 	
-	# Ajouter au groupe des boosts
+	# Ajouter au groupe des boosts (garder pour compatibilité)
 	add_to_group("boosts")
 
 func setup_boost_sounds():
@@ -94,77 +97,61 @@ func _on_body_entered(body):
 func collect_boost(player):
 	if collected:
 		return
-		
-	collected = true
 	
-	# Rendre le boost invisible et non-interactable immédiatement
-	collision.set_deferred("disabled", true)
-	
-	# Animation de récupération (comme les pièces)
-	var tween = create_tween()
-	tween.parallel().tween_property(self, "scale", Vector2(1.5, 1.5), 0.2)
-	tween.parallel().tween_property(self, "modulate:a", 0.0, 0.2)
-	
-	# Appliquer l'effet du boost et jouer le son
-	var current_sound = apply_boost_effect(player)
-	
-	# Attendre que l'animation de disparition soit finie
-	await tween.finished
-	
-	# Si un son est en cours, attendre qu'il se termine
-	if current_sound and current_sound.playing:
-		await current_sound.finished
-	
-	# Supprimer le boost après que le son soit complètement fini
-	queue_free()
+	# Convertir le type de boost en string et essayer d'ajouter à l'inventaire
+	var bonus_type_string = get_bonus_type_string()
+	if player.has_method("add_bonus_to_inventory"):
+		var success = player.add_bonus_to_inventory(bonus_type_string)
+		if success:
+			print("🎁 Bonus ", bonus_type_string, " ajouté à l'inventaire du joueur!")
+			
+			# Marquer comme collecté seulement si l'ajout a réussi
+			collected = true
+			
+			# Rendre le boost invisible et non-interactable immédiatement
+			collision.set_deferred("disabled", true)
+			
+			# Animation de récupération (comme les pièces)
+			var tween = create_tween()
+			tween.parallel().tween_property(self, "scale", Vector2(1.5, 1.5), 0.2)
+			tween.parallel().tween_property(self, "modulate:a", 0.0, 0.2)
+			
+			# Attendre que l'animation de disparition soit finie
+			await tween.finished
+			
+			# Supprimer le boost après l'animation
+			queue_free()
+		else:
+			print("🎁 Inventaire de bonus plein, impossible de ramasser ", bonus_type_string)
+			# Ne pas marquer comme collecté, le bonus reste au sol
+			return
+	else:
+		print("⚠️ Le joueur n'a pas la méthode add_bonus_to_inventory")
 
-func apply_boost_effect(player) -> AudioStreamPlayer2D:
-	var current_sound: AudioStreamPlayer2D = null
-	
-	# Jouer le son approprié selon le type de bonus
+# Convertir le type enum en string pour l'inventaire
+func get_bonus_type_string() -> String:
 	match boost_type:
 		BoostType.ATOMIC_BOMB:
-			if nuke_sound:
-				nuke_sound.play()
-				current_sound = nuke_sound
-			apply_atomic_bomb()
+			return "atomic_bomb"
 		BoostType.MEDICAL_KIT:
-			if bandage_sound:
-				bandage_sound.play()
-				current_sound = bandage_sound
-			apply_medical_kit(player)
+			return "medical_kit"
 		BoostType.SKULL:
-			if insta_kill_sound:
-				insta_kill_sound.play()
-				current_sound = insta_kill_sound
-			apply_skull_boost(player)
+			return "skull"
 		BoostType.SPEED_BOOST:
-			# Pas de son pour l'instant
-			apply_speed_boost(player)
-	
-	return current_sound
+			return "speed_boost"
+		_:
+			return ""
 
-func apply_atomic_bomb():
-	# Tuer tous les zombies sur la map
-	var zombies = get_tree().get_nodes_in_group("enemy")
-	for zombie in zombies:
-		if zombie.has_method("take_damage"):
-			zombie.take_damage(9999)  # Dégâts énormes pour tuer instantanément
-
-func apply_medical_kit(player):
-	# Soigner le joueur à 100%
-	if player.has_method("heal_to_full"):
-		player.heal_to_full()
-	else:
-		player.health = player.max_health
-		player.update_health_display()
-
-func apply_skull_boost(player):
-	# Appliquer un boost de dégâts énorme pour one-shot kill
-	if player.has_method("apply_damage_boost"):
-		player.apply_damage_boost(9999, 30.0)  # Dégâts énormes = one-shot kill
-
-func apply_speed_boost(player):
-	# Appliquer le boost de vitesse au joueur avec une durée de 60 secondes
-	if player.has_method("apply_speed_boost"):
-		player.apply_speed_boost(1.5, 30.0) 
+# Obtenir le son de ramassage approprié
+func get_pickup_sound() -> AudioStreamPlayer2D:
+	match boost_type:
+		BoostType.ATOMIC_BOMB:
+			return nuke_sound
+		BoostType.MEDICAL_KIT:
+			return bandage_sound
+		BoostType.SKULL:
+			return insta_kill_sound
+		BoostType.SPEED_BOOST:
+			return null  # Pas de son pour l'instant
+		_:
+			return null 

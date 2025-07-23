@@ -36,9 +36,10 @@ func setup_game_over_screen():
 func start_game():
 	print("🎮 Démarrage du jeu...")
 	
-	# Réinitialiser les pièces
-	coins = 0
+	# Pièces temporaires pour tester le bouclier
+	coins = 0  # Changé temporairement pour les tests
 	coins_changed.emit(coins)
+	print("💰 Pièces de départ: ", coins)
 	
 	# Vérifier que le WaveManager existe
 	if not get_node_or_null("/root/WaveManager"):
@@ -70,6 +71,11 @@ func _on_game_over(zombies_killed: int, waves_completed: int):
 	# Afficher l'écran de Game Over
 	if game_over_screen:
 		game_over_screen.show_game_over(zombies_killed, waves_completed)
+		
+		# Jouer le son de game over depuis le WaveManager
+		if WaveManager and WaveManager.game_over_sound:
+			WaveManager.game_over_sound.play()
+			print("💀 Son de game over joué depuis GameManager")
 	else:
 		print("Erreur: Écran de Game Over non trouvé")
 

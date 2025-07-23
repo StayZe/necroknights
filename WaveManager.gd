@@ -31,11 +31,19 @@ var game_over_screen: CanvasLayer = null
 
 # Son de début de manche
 var wave_start_sound: AudioStreamPlayer
+var wave_sound_timer: Timer
+
+# Son d'ambiance de fond
+var background_ambient_sound: AudioStreamPlayer
+
+# Son de game over
+var game_over_sound: AudioStreamPlayer
 
 # Constantes
 const BREAK_DURATION = 20.0
 const STARTING_ZOMBIES = 10
 const ZOMBIES_INCREMENT = 5
+const WAVE_SOUND_DURATION = 7.0  # Durée en secondes pour le son de début de manche
 
 func _ready():
 	# Créer le timer pour les pauses
@@ -48,7 +56,30 @@ func _ready():
 	wave_start_sound = AudioStreamPlayer.new()
 	add_child(wave_start_sound)
 	wave_start_sound.stream = preload("res://songs/starting-round-zombie-sound.wav")
-	wave_start_sound.volume_db = -8  # Ajuster le volume si nécessaire
+	wave_start_sound.volume_db = -10  # Ajuster le volume si nécessaire
+	
+	# Créer et configurer le son d'ambiance de fond
+	background_ambient_sound = AudioStreamPlayer.new()
+	add_child(background_ambient_sound)
+	background_ambient_sound.stream = preload("res://songs/horror-ambiant-song.wav")
+	background_ambient_sound.volume_db = -5  # Volume plus faible pour l'ambiance
+	background_ambient_sound.autoplay = true  # Démarrer automatiquement
+	background_ambient_sound.bus = "Master"  # Utiliser le bus principal
+	
+	# Connecter le signal finished pour créer une boucle manuelle
+	background_ambient_sound.finished.connect(_on_background_ambient_finished)
+	
+	# Créer et configurer le son de game over
+	game_over_sound = AudioStreamPlayer.new()
+	add_child(game_over_sound)
+	game_over_sound.stream = preload("res://songs/8-bit-game-over-sound-effect-331435.mp3")
+	game_over_sound.volume_db = -5  # Volume pour le son de game over
+	
+	# Créer le timer pour contrôler la durée de lecture du son
+	wave_sound_timer = Timer.new()
+	wave_sound_timer.wait_time = WAVE_SOUND_DURATION
+	wave_sound_timer.timeout.connect(_on_wave_sound_finished)
+	add_child(wave_sound_timer)
 	
 	# Charger le record
 	load_save_data()
@@ -79,6 +110,11 @@ func start_waves():
 		print("Erreur: Aucun joueur enregistré!")
 		return
 	
+	# S'assurer que le son d'ambiance se joue
+	if background_ambient_sound and not background_ambient_sound.playing:
+		background_ambient_sound.play()
+		print("🎵 Son d'ambiance démarré")
+	
 	current_wave = 0
 	start_next_wave()
 
@@ -99,6 +135,17 @@ func cleanup():
 	# Arrêter tous les timers
 	if break_timer:
 		break_timer.stop()
+	
+	if wave_sound_timer:
+		wave_sound_timer.stop()
+	
+	# Arrêter le son d'ambiance
+	if background_ambient_sound:
+		background_ambient_sound.stop()
+	
+	# Arrêter le son de game over
+	if game_over_sound:
+		game_over_sound.stop()
 	
 	# Nettoyer les références des spawners
 	for spawner in spawners:
@@ -137,11 +184,15 @@ func start_next_wave():
 		print("Erreur: Aucun spawner valide!")
 		return
 	
+	# Nettoyer tous les drops au sol avant de commencer la nouvelle manche
+	cleanup_drops_on_ground()
+	
 	current_wave += 1
 	
 	# Jouer le son de début de manche
 	if wave_start_sound:
 		wave_start_sound.play()
+		wave_sound_timer.start()
 	
 	# Calculer les paramètres de la manche
 	total_zombies_in_wave = get_zombies_for_wave(current_wave)
@@ -314,6 +365,16 @@ func trigger_game_over():
 	if break_timer:
 		break_timer.stop()
 	
+	# Arrêter le timer du son s'il est actif
+	if wave_sound_timer:
+		wave_sound_timer.stop()
+	
+	# Arrêter le son d'ambiance
+	if background_ambient_sound:
+		background_ambient_sound.stop()
+	
+	# Le son de game over sera joué par le GameManager après l'affichage de l'écran
+	
 	# Calculer le nombre de manches complètement terminées
 	var completed_waves = max(0, current_wave - 1)
 	
@@ -330,3 +391,50 @@ func get_game_stats() -> Dictionary:
 		"current_wave": current_wave,
 		"max_wave_record": max_wave_completed
 	} 
+
+# Nettoyer tous les drops (pièces et bonus) qui traînent au sol
+func cleanup_drops_on_ground():
+	var drops = get_tree().get_nodes_in_group("drops")
+	var drops_count = drops.size()
+	
+	if drops_count > 0:
+		print("🧹 Nettoyage de " + str(drops_count) + " drops au sol avant la manche " + str(current_wave + 1))
+		
+		for drop in drops:
+			if is_instance_valid(drop):
+				# Créer un petit effet de disparition pour que ce soit visuel
+				var tween = drop.create_tween()
+				tween.parallel().tween_property(drop, "scale", Vector2(0.5, 0.5), 0.3)
+				tween.parallel().tween_property(drop, "modulate:a", 0.0, 0.3)
+				
+				# Supprimer le drop après l'effet
+				tween.finished.connect(drop.queue_free)
+		
+		print("✨ Drops nettoyés - Place nette pour la nouvelle manche !")
+	else:
+		print("✅ Aucun drop à nettoyer") 
+
+# Fonctions pour contrôler le son d'ambiance de fond
+func start_background_ambient():
+	if background_ambient_sound and not background_ambient_sound.playing:
+		background_ambient_sound.play()
+
+func stop_background_ambient():
+	if background_ambient_sound and background_ambient_sound.playing:
+		background_ambient_sound.stop()
+
+func set_background_ambient_volume(volume_db: float):
+	if background_ambient_sound:
+		background_ambient_sound.volume_db = volume_db
+
+# Fonction appelée quand le son de début de manche est terminé
+func _on_wave_sound_finished():
+	if wave_start_sound:
+		wave_start_sound.stop()
+	wave_sound_timer.stop() 
+
+# Fonction appelée quand le son d'ambiance est terminé
+func _on_background_ambient_finished():
+	if background_ambient_sound:
+		background_ambient_sound.play()
+		print("🔄 Son d'ambiance relancé (boucle)") 

@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3 uid="uid://bvq2h7k3xmq1r"]
+
+[ext_resource type="Texture2D" path="res://UI/health_bar/health_bar_decoration.png" id="1_decoration"]
+[ext_resource type="Texture2D" path="res://UI/health_bar/health_bar.png" id="2_health_bar"]
+[ext_resource type="Script" path="res://UI/health_bar/HealthBar.gd" id="3_health_script"]
+
+[node name="HealthBar" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("3_health_script")
+
+[node name="HealthBarDecoration" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 65.0
+texture = ExtResource("1_decoration")
+
+[node name="HealthBarFill" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 30.0
+offset_right = 206.0
+offset_bottom = 55.0
+texture = ExtResource("2_health_bar")
+expand_mode = 1 

@@ -7,7 +7,7 @@ font_size = 32
 font_color = Color(0.8, 0.1, 0.1, 1)
 
 [node name="GameOverScreen" type="CanvasLayer"]
-process_mode = 3
+process_mode = 2
 script = ExtResource("1_0hwjx")
 
 [node name="Background" type="ColorRect" parent="."]

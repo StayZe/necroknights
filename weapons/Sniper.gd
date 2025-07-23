@@ -209,7 +209,13 @@ func spawn_projectile(direction: Vector2):
 		var projectile = projectile_scene.instantiate()
 		get_parent().add_child(projectile)  # Ajoute le projectile à la scène
 		projectile.global_position = global_position + shoot_offset
-		projectile.direction = direction  # Applique la direction du tir
+		
+		# Utiliser la méthode set_direction pour l'orientation
+		if projectile.has_method("set_direction"):
+			projectile.set_direction(direction)
+		else:
+			projectile.direction = direction  # Fallback pour la compatibilité
+		
 		projectile.damage = 100.0  # Dégâts du sniper
 		
 		# Passer la référence du joueur au projectile (APRÈS avoir défini les dégâts)
@@ -217,4 +223,4 @@ func spawn_projectile(direction: Vector2):
 		if player is Player and projectile.has_method("set_player_reference"):
 			projectile.set_player_reference(player)
 
-# ... existing code ... 
+

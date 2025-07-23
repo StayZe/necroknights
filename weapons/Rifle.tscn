@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://weapons/Rifle.gd" id="1_n1bec"]
 [ext_resource type="Texture2D" uid="uid://bgnnlrdryxg8r" path="res://sprites/weapons/Rifle_Flicker.png" id="2_iu0v2"]
-[ext_resource type="PackedScene" uid="uid://byexhcn7esfm1" path="res://weapons/Projectile.tscn" id="3_8j2tb"]
+[ext_resource type="PackedScene" path="res://weapons/RiffleBullet.tscn" id="3_8j2tb"]
 [ext_resource type="Texture2D" uid="uid://dr7nfsf0x7kya" path="res://sprites/weapons/Rifle_Shoot.png" id="4_q37m2"]
 
 [sub_resource type="Animation" id="Animation_qnp9y"]

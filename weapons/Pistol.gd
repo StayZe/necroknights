@@ -209,8 +209,14 @@ func spawn_projectile(direction: Vector2):
 		var projectile = projectile_scene.instantiate()
 		get_parent().add_child(projectile)  # Ajoute le projectile à la scène
 		projectile.global_position = global_position + shoot_offset
-		projectile.direction = direction  # Applique la direction du tir
-		projectile.damage = 20.0  # Dégâts du pistolet
+		
+		# Utiliser la méthode set_direction pour l'orientation
+		if projectile.has_method("set_direction"):
+			projectile.set_direction(direction)
+		else:
+			projectile.direction = direction  # Fallback pour la compatibilité
+		
+		projectile.damage = 35.0  # Dégâts du pistolet
 		
 		# Passer la référence du joueur au projectile (APRÈS avoir défini les dégâts)
 		var player = get_parent()

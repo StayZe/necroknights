@@ -103,8 +103,8 @@ func _physics_process(delta):
 		return
 	
 	if player != null and current_state == State.CHASE:
-		# Système de pathfinding amélioré
-		update_pathfinding(delta)
+		# Système de pathfinding amélioré avec détection prédictive
+		update_pathfinding_with_prediction(delta)
 		
 		# Si le zombie est proche du joueur, attaquer
 		if global_position.distance_to(player.global_position) < 40:
@@ -116,6 +116,23 @@ func _physics_process(delta):
 	update_depth_sorting()
 	
 	move_and_slide()
+	
+	# Debug des collisions (simplifié)
+	if get_slide_collision_count() > 0:
+		for i in get_slide_collision_count():
+			var collision = get_slide_collision(i)
+			var collider = collision.get_collider()
+			var collider_name = "objet inconnu"
+			
+			if collider:
+				if collider.has_method("get_name"):
+					collider_name = collider.name
+				elif collider.get("name"):
+					collider_name = str(collider.name)
+				else:
+					collider_name = str(collider.get_class())
+			
+			print("🛡️ Zombie Heavy rencontre une collision avec: ", collider_name)
 
 func change_state(new_state):
 	current_state = new_state
@@ -186,18 +203,14 @@ func drop_coins():
 	# Stocker la position du zombie avant sa suppression
 	var zombie_position = global_position
 	
-	# Créer et placer les pièces
+	# Créer et placer les pièces à des positions valides
 	for i in range(coins_to_drop):
 		var coin = coin_scene.instantiate()
 		if not coin:
 			continue
 		
-		# Position aléatoire autour du zombie
-		var offset = Vector2(
-			randf_range(-50, 50),
-			randf_range(-50, 50)
-		)
-		var coin_position = zombie_position + offset
+		# Trouver une position valide pour la pièce
+		var coin_position = find_valid_drop_position(zombie_position, 60.0)
 		
 		# Ajouter la pièce à la scène d'abord
 		scene_root.add_child(coin)
@@ -246,18 +259,75 @@ func drop_boost():
 			boost.boost_type = BoostItem.BoostType.SPEED_BOOST
 			print("⚡ Boost de vitesse droppé !")
 	
-	# Position aléatoire autour du zombie
-	var offset = Vector2(
-		randf_range(-30, 30),
-		randf_range(-30, 30)
-	)
-	var boost_position = global_position + offset
+	# Trouver une position valide pour le boost
+	var boost_position = find_valid_drop_position(global_position, 50.0)
 	
 	# Ajouter le boost à la scène
 	scene_root.add_child(boost)
 	
 	# Définir la position après l'ajout à la scène
 	boost.global_position = boost_position
+
+# Trouve une position valide pour dropper un item (pièce ou boost)
+func find_valid_drop_position(center_position: Vector2, max_radius: float = 60.0) -> Vector2:
+	var max_attempts = 25  # Nombre maximum de tentatives pour les drops
+	
+	for attempt in range(max_attempts):
+		# Générer une position candidate dans un rayon autour du centre
+		var angle = randf() * 2.0 * PI
+		var distance = randf_range(15.0, max_radius)  # Minimum 15 pixels du centre
+		
+		var candidate_position = center_position + Vector2(
+			cos(angle) * distance,
+			sin(angle) * distance
+		)
+		
+		# Vérifier si cette position est valide pour un drop
+		if is_position_drop_valid(candidate_position):
+			return candidate_position
+	
+	# Si aucune position valide trouvée, retourner une position proche du centre
+	print("⚠️ Aucune position de drop idéale trouvée, utilisation de la position de fallback")
+	return center_position + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+
+# Vérifie si une position est valide pour dropper un item
+func is_position_drop_valid(position: Vector2) -> bool:
+	var space_state = get_world_2d().direct_space_state
+	
+	# Créer une forme de test plus petite pour les items
+	var query = PhysicsShapeQueryParameters2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 8.0  # Plus petit rayon pour les items
+	query.shape = shape
+	query.transform = Transform2D(0, position)
+	
+	# Vérifier les collisions avec les obstacles
+	query.collision_mask = 1  # Layer des murs et obstacles
+	
+	var results = space_state.intersect_shape(query)
+	
+	# Si on détecte des collisions, la position n'est pas valide
+	if not results.is_empty():
+		return false
+	
+	# Test rapide avec un raycast vers le bas pour s'assurer qu'on est sur le sol
+	var ground_check = PhysicsRayQueryParameters2D.create(
+		position + Vector2(0, -5),  # Un peu au-dessus
+		position + Vector2(0, 15),   # Un peu en-dessous
+		1  # Layer des murs/sol
+	)
+	
+	var ground_result = space_state.intersect_ray(ground_check)
+	# On veut qu'il y ait quelque chose (le sol) pas trop loin en dessous
+	if ground_result.is_empty():
+		var hit_distance = 20.0  # Distance par défaut si pas de collision
+	else:
+		var hit_distance = position.distance_to(ground_result.position)
+		# Si le sol est trop loin (plus de 30 pixels), ce n'est pas idéal
+		if hit_distance > 30.0:
+			return false
+	
+	return true
 
 func update_health_display():
 	if health_label:
@@ -671,3 +741,184 @@ func start_random_sound_timer():
 func _on_sound_timer_timeout():
 	play_random_zombie_sound()
 	start_random_sound_timer()  # Programmer le prochain son
+
+# Calcule la direction d'évitement optimale basée sur la normale de collision
+func calculate_avoidance_direction(collision_normal: Vector2) -> Vector2:
+	if player == null:
+		return collision_normal
+	
+	# Direction vers le joueur
+	var player_direction = global_position.direction_to(player.global_position)
+	
+	# Calculer les deux directions perpendiculaires à la normale de collision
+	var perpendicular_left = Vector2(-collision_normal.y, collision_normal.x)
+	var perpendicular_right = Vector2(collision_normal.y, -collision_normal.x)
+	
+	# Choisir la direction perpendiculaire qui nous rapproche le plus du joueur
+	var dot_left = perpendicular_left.dot(player_direction)
+	var dot_right = perpendicular_right.dot(player_direction)
+	
+	var best_perpendicular = perpendicular_left if dot_left > dot_right else perpendicular_right
+	
+	# Mélanger la normale de collision avec la direction perpendiculaire optimale
+	# Plus de poids sur la normale pour s'éloigner de l'obstacle
+	var avoidance_direction = (collision_normal * 0.6 + best_perpendicular * 0.4).normalized()
+	
+	return avoidance_direction
+
+# Variables pour l'évitement prédictif
+var avoidance_mode = false
+var avoidance_direction_heavy = Vector2.ZERO
+var avoidance_timer = 0.0
+var avoidance_duration = 0.8  # Durée d'évitement légèrement plus longue pour le zombie lourd
+
+# Variables spéciales pour les grillages
+var fence_bypass_mode = false
+var fence_entry_point = Vector2.ZERO
+var fence_bypass_timer = 0.0
+
+# Points d'entrée des grillages - à définir selon ta map
+var fence_entry_points = {
+	"Grillage": Vector2(840, 350)  # Position approximative du point d'entrée du grillage
+}
+
+# Système de pathfinding avec détection prédictive d'obstacles
+func update_pathfinding_with_prediction(delta):
+	if player == null:
+		return
+	
+	# Mettre à jour le timer d'évitement de grillage
+	if fence_bypass_mode:
+		fence_bypass_timer -= delta
+		# Vérifier si on a atteint le point d'entrée du grillage
+		var distance_to_entry = global_position.distance_to(fence_entry_point)
+		if distance_to_entry < 30.0 or fence_bypass_timer <= 0:
+			fence_bypass_mode = false
+			print("🛡️ Zombie Heavy a atteint le point d'entrée du grillage")
+	
+	# Si on est en mode contournement de grillage
+	if fence_bypass_mode:
+		var entry_direction = global_position.direction_to(fence_entry_point)
+		velocity = entry_direction * speed
+		
+		# Orienter le sprite
+		if velocity.length() > 0:
+			sprite.flip_h = velocity.x < 0
+		return
+	
+	# Mettre à jour le timer d'évitement normal
+	if avoidance_mode:
+		avoidance_timer -= delta
+		if avoidance_timer <= 0:
+			avoidance_mode = false
+			print("🛡️ Zombie Heavy termine l'évitement")
+	
+	# Si on est en mode évitement normal, continuer dans cette direction
+	if avoidance_mode:
+		# Mélanger davantage avec la direction du joueur pour un évitement plus court
+		var player_direction = global_position.direction_to(player.global_position)
+		var mixed_direction = (avoidance_direction_heavy * 0.6 + player_direction * 0.4).normalized()
+		velocity = mixed_direction * speed
+		
+		# Orienter le sprite
+		if velocity.length() > 0:
+			sprite.flip_h = velocity.x < 0
+		return
+	
+	# Direction directe vers le joueur
+	var player_direction = global_position.direction_to(player.global_position)
+	
+	# Détecter les obstacles avec un raycast prédictif plus court
+	var obstacle_info = detect_obstacle_ahead_with_type(player_direction)
+	
+	if obstacle_info.detected:
+		# Vérifier si c'est un grillage
+		if obstacle_info.obstacle_name == "Grillage":
+			# Mode spécial pour contourner le grillage
+			fence_bypass_mode = true
+			fence_entry_point = fence_entry_points.get("Grillage", global_position)
+			fence_bypass_timer = 6.0  # Un peu plus de temps pour le zombie lourd
+			print("🛡️ Zombie Heavy détecte un grillage - va vers le point d'entrée: ", fence_entry_point)
+		else:
+			# Évitement normal pour les autres obstacles
+			avoidance_direction_heavy = calculate_best_avoidance_direction(player_direction)
+			avoidance_mode = true
+			avoidance_timer = avoidance_duration
+			velocity = avoidance_direction_heavy * speed
+			print("🛡️ Zombie Heavy commence l'évitement normal - direction: ", avoidance_direction_heavy)
+	else:
+		# Aucun obstacle détecté, aller directement vers le joueur
+		velocity = player_direction * speed
+	
+	# Orienter le sprite
+	if velocity.length() > 0:
+		sprite.flip_h = velocity.x < 0
+
+# Détecte s'il y a un obstacle dans la direction donnée et retourne son type
+func detect_obstacle_ahead_with_type(direction: Vector2) -> Dictionary:
+	var space_state = get_world_2d().direct_space_state
+	var detection_distance = 40.0  # Distance de détection légèrement plus grande pour le zombie lourd
+	
+	# Raycast principal
+	var query = PhysicsRayQueryParameters2D.create(
+		global_position,
+		global_position + direction * detection_distance,
+		1  # Layer des murs/obstacles
+	)
+	query.exclude = [self]
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result.is_empty():
+		return {"detected": false, "obstacle_name": ""}
+	
+	# Analyser le type d'obstacle
+	var collider = result.get("collider")
+	var obstacle_name = ""
+	
+	if collider:
+		# Si c'est un TileMapLayer, obtenir son nom
+		if collider is TileMapLayer:
+			obstacle_name = collider.name
+		elif collider.has_method("get_name"):
+			obstacle_name = collider.name
+		elif collider.get("name"):
+			obstacle_name = str(collider.name)
+		else:
+			obstacle_name = str(collider.get_class())
+	
+	return {"detected": true, "obstacle_name": obstacle_name}
+
+# Ancienne fonction gardée pour compatibilité
+func detect_obstacle_ahead(direction: Vector2) -> bool:
+	var obstacle_info = detect_obstacle_ahead_with_type(direction)
+	return obstacle_info.detected
+
+# Calcule la meilleure direction pour éviter l'obstacle
+func calculate_best_avoidance_direction(blocked_direction: Vector2) -> Vector2:
+	var space_state = get_world_2d().direct_space_state
+	var detection_distance = 50.0  # Distance de test légèrement plus grande pour le zombie lourd
+	
+	# Tester d'abord des angles plus petits pour un évitement plus subtil
+	var test_angles = [PI/4, -PI/4, PI/2, -PI/2, PI/3, -PI/3]  # 45°, 90°, 60° dans chaque direction
+	
+	for angle in test_angles:
+		var test_direction = blocked_direction.rotated(angle)
+		
+		# Tester cette direction
+		var query = PhysicsRayQueryParameters2D.create(
+			global_position,
+			global_position + test_direction * detection_distance,
+			1  # Layer des murs/obstacles
+		)
+		query.exclude = [self]
+		
+		var result = space_state.intersect_ray(query)
+		
+		# Si cette direction est libre
+		if result.is_empty():
+			print("🛡️ Direction d'évitement trouvée: angle ", rad_to_deg(angle), "°")
+			return test_direction
+	
+	# Si aucune direction n'est complètement libre, choisir une direction perpendiculaire
+	return Vector2(-blocked_direction.y, blocked_direction.x)  # 90° à gauche par défaut
