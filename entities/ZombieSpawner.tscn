@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://clb5ukqbqupyr"]
+[gd_scene load_steps=3 format=3 uid="uid://clb5ukqbqupyr"]
 
 [ext_resource type="Script" uid="uid://ml3uaq2bpgbo" path="res://entities/ZombieSpawner.gd" id="1_08f87"]
-[ext_resource type="PackedScene" uid="uid://dytjcokiwbrry" path="res://entities/Zombie.tscn" id="2_pykjg"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_rvdpl"]
 radius = 300.0

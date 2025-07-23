@@ -393,6 +393,36 @@ text = "LEFT CLICK"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="shop" type="HBoxContainer" parent="help_panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="help_panel/VBoxContainer/shop"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "SHOP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="help_panel/VBoxContainer/shop"]
+layout_mode = 2
+texture = ExtResource("10_oy4el")
+expand_mode = 2
+
+[node name="Label3" type="Label" parent="help_panel/VBoxContainer/shop"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_330t7")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2400")
+text = "B"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Label" type="Label" parent="help_panel"]
 layout_mode = 1
 anchors_preset = 5
