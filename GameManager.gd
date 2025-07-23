@@ -37,7 +37,7 @@ func start_game():
 	print("🎮 Démarrage du jeu...")
 	
 	# Pièces temporaires pour test le shield
-	coins = 2000  
+	coins = 0  
 	coins_changed.emit(coins)
 	print("💰 Pièces de départ: ", coins)
 	
