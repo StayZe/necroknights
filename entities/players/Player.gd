@@ -149,31 +149,32 @@ func update_facing_direction():
 	var previous_facing = player_facing_right
 	player_facing_right = mouse_pos.x > global_position.x
 	
-	# Mettre à jour l'animation si la direction a changé
-	if anim and previous_facing != player_facing_right:
-		if player_facing_right:
-			last_direction = "walk-right"
-			anim.play("walk-right")
-		else:
-			last_direction = "walk-left"
-			anim.play("walk-left")
+	# L'orientation du personnage est TOUJOURS basée sur la direction de la souris
+	var direction_to_mouse = mouse_pos - global_position
 	
-	# Si le joueur se déplace (mais pas simplement en regardant), on priorise la direction haut/bas
-	if velocity.length() > 0 and anim:
-		if abs(velocity.y) > abs(velocity.x):
-			if velocity.y > 0:
-				last_direction = "walk-down"
-				anim.play("walk-down")
-			else:
-				last_direction = "walk-up"
-				anim.play("walk-up")
-		else:
-			if player_facing_right:
+	# Utiliser les composantes X et Y pour déterminer la direction principale
+	# CORRECTION: Les animations sont inversées dans l'AnimationPlayer, je compense
+	if anim:
+		if abs(direction_to_mouse.x) > abs(direction_to_mouse.y):
+			# Direction horizontale dominante
+			if direction_to_mouse.x > 0:
+				# Souris à droite du personnage
 				last_direction = "walk-right"
 				anim.play("walk-right")
 			else:
+				# Souris à gauche du personnage -> jouer walk-down car c'est ce qui s'affiche
+				last_direction = "walk-down"
+				anim.play("walk-down")
+		else:
+			# Direction verticale dominante
+			if direction_to_mouse.y > 0:
+				# Souris en bas du personnage -> jouer walk-left car c'est ce qui s'affiche 
 				last_direction = "walk-left"
 				anim.play("walk-left")
+			else:
+				# Souris en haut du personnage
+				last_direction = "walk-up"
+				anim.play("walk-up")
 	
 	# Ajuster la position de l'arme si nécessaire
 	if current_weapon:

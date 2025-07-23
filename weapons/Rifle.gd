@@ -216,7 +216,7 @@ func spawn_projectile(direction: Vector2):
 		else:
 			projectile.direction = direction  # Fallback pour la compatibilité
 		
-		projectile.damage = 25.0  # Dégâts du fusil d'assaut
+		projectile.damage = 20.0  # Dégâts du fusil d'assaut
 		
 		# Passer la référence du joueur au projectile (APRÈS avoir défini les dégâts)
 		var player = get_parent()
