@@ -20,15 +20,15 @@ var close_button  # Sera initialisé dans _ready() avec get_node_or_null
 
 # Prix des éléments
 var item_prices = {
-	"atomic_bomb": 80,      # Réduit de 200 → 80 (accessible dès manche 3-4)
-	"medical_kit": 35,      # Réduit de 75 → 35 (accessible dès manche 2)
-	"skull": 60,            # Réduit de 150 → 60 (accessible dès manche 3)
-	"speed_boost": 45,      # Réduit de 100 → 45 (accessible dès manche 2-3)
-	"pistol": 25,           # Réduit de 50 → 25 (accessible dès manche 1-2)
-	"rifle": 120,           # Réduit de 250 → 120 (accessible dès manche 5-6)
-	"sniper": 200,          # Réduit de 500 → 200 (accessible dès manche 8-10)
-	"shield_small": 90,     # Réduit de 250 → 90 (accessible dès manche 4-5)
-	"shield_large": 150     # Réduit de 500 → 150 (accessible dès manche 6-8)
+	"atomic_bomb": 80,      
+	"medical_kit": 35,      
+	"skull": 60,            
+	"speed_boost": 45,      
+	"pistol": 25,           
+	"rifle": 120,           
+	"sniper": 200,          
+	"shield_small": 90,     
+	"shield_large": 150     
 }
 
 func _ready():
@@ -198,7 +198,7 @@ func buy_item(item_type: String):
 		apply_item_effect(item_type)
 
 func is_bonus_item(item_type: String) -> bool:
-	return item_type in ["atomic_bomb", "medical_kit", "skull", "speed_boost", "shield_small", "shield_large"]
+	return item_type in ["atomic_bomb", "medical_kit", "skull", "speed_boost"]
 
 func buy_weapon(weapon_type: String):
 	var price = item_prices.get(weapon_type, 0)
@@ -325,28 +325,28 @@ func is_game_over_screen_visible() -> bool:
 func setup_tooltips():
 	# Configurer les infobulles pour chaque bouton du shop
 	if atomic_bomb_button:
-		atomic_bomb_button.tooltip_text = "Bombe Atomique - 200 pièces\nTue instantanément tous les zombies présents sur la carte."
+		atomic_bomb_button.tooltip_text = "Bombe Atomique - 80 pièces\nTue instantanément tous les zombies présents sur la carte."
 	
 	if medical_kit_button:
-		medical_kit_button.tooltip_text = "Kit Médical - 75 pièces\nRestaure complètement votre santé à 100%."
+		medical_kit_button.tooltip_text = "Kit Médical - 35 pièces\nRestaure complètement votre santé à 100%."
 	
 	if skull_button:
-		skull_button.tooltip_text = "Boost de Crâne - 150 pièces\nAugmente massivement vos dégâts pendant 30 secondes."
+		skull_button.tooltip_text = "Boost de Crâne - 60 pièces\nAugmente massivement vos dégâts pendant 30 secondes."
 	
 	if speed_boost_button:
-		speed_boost_button.tooltip_text = "Boost de Vitesse - 100 pièces\nAugmente votre vitesse de déplacement de 50% pendant 30 secondes."
+		speed_boost_button.tooltip_text = "Boost de Vitesse - 45 pièces\nAugmente votre vitesse de déplacement de 50% pendant 30 secondes."
 	
 	if pistol_button:
-		pistol_button.tooltip_text = "Pistolet - 50 pièces\nArme rapide avec un bon taux de tir et des munitions modérées."
+		pistol_button.tooltip_text = "Pistolet - 25 pièces\nArme rapide avec un bon taux de tir et des munitions modérées."
 	
 	if rifle_button:
-		rifle_button.tooltip_text = "Fusil d'Assaut - 250 pièces\nArme automatique avec un taux de tir élevé et beaucoup de munitions."
+		rifle_button.tooltip_text = "Fusil d'Assaut - 120 pièces\nArme automatique avec un taux de tir élevé et beaucoup de munitions."
 	
 	if sniper_button:
-		sniper_button.tooltip_text = "Fusil de Sniper - 500 pièces\nArme de précision avec des dégâts élevés mais un tir plus lent."
+		sniper_button.tooltip_text = "Fusil de Sniper - 200 pièces\nArme de précision avec des dégâts élevés mais un tir plus lent."
 	
 	if shield_button1:
-		shield_button1.tooltip_text = "Petit Bouclier - 250 pièces\nAjoute 50 HP de bouclier. Le bouclier absorbe les dégâts avant la santé."
+		shield_button1.tooltip_text = "Petit Bouclier - 90 pièces\nAjoute 50 HP de bouclier. Le bouclier absorbe les dégâts avant la santé."
 	
 	if shield_button2:
-		shield_button2.tooltip_text = "Grand Bouclier - 500 pièces\nAjoute 100 HP de bouclier. Le bouclier absorbe les dégâts avant la santé." 
+		shield_button2.tooltip_text = "Grand Bouclier - 150 pièces\nAjoute 100 HP de bouclier. Le bouclier absorbe les dégâts avant la santé." 

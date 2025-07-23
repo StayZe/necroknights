@@ -91,6 +91,11 @@ func _ready():
 	# Donner un pistolet de départ au joueur
 	pickup_weapon_from_path("res://weapons/Pistol.tscn")
 	print("🔫 Pistolet de départ donné au joueur")
+	
+	# Donner une bombe atomique par défaut dans le slot de bonus de la touche " (bonus_slot_1)
+	await get_tree().create_timer(0.2).timeout  # Attendre un peu plus pour que l'UI soit complètement chargée
+	add_bonus_to_inventory("atomic_bomb")
+	print("💣 Bombe atomique de départ ajoutée au slot de bonus de la touche \"")
 
 func _physics_process(delta):
 	get_input()
