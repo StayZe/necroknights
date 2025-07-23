@@ -71,6 +71,11 @@ func _on_game_over(zombies_killed: int, waves_completed: int):
 	# Afficher l'écran de Game Over
 	if game_over_screen:
 		game_over_screen.show_game_over(zombies_killed, waves_completed)
+		
+		# Jouer le son de game over depuis le WaveManager
+		if WaveManager and WaveManager.game_over_sound:
+			WaveManager.game_over_sound.play()
+			print("💀 Son de game over joué depuis GameManager")
 	else:
 		print("Erreur: Écran de Game Over non trouvé")
 
