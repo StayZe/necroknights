@@ -18,7 +18,7 @@ var player_direction = "right"  # Direction du joueur (right, left, up, down)
 var shoot_sound: AudioStreamPlayer2D
 
 func _ready():
-	fire_rate = 1.5  
+	fire_rate = 0.8  
 	reload_time = 2.0  # Temps de recharge plus long
 	ammo = 8
 	max_ammo = 8
